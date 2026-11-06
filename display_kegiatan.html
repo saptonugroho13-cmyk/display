@@ -1,0 +1,1956 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Public Information Display (PID) - BPSDM Hukum</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js for Visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- html2pdf Library for Direct PDF Export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Plus Jakarta Sans -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                    },
+                    colors: {
+                        navy: {
+                            900: '#070d1e',
+                            850: '#0b1329',
+                            800: '#111c38',
+                            750: '#162447'
+                        },
+                        gold: {
+                            400: '#fbbf24',
+                            500: '#d97706',
+                            600: '#b45309'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #070d1e; color: #f8fafc; }
+        
+        /* Smooth Running Text Animation */
+        @keyframes marquee {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+        .animate-marquee { display: inline-block; white-space: nowrap; animation: marquee 25s linear infinite; }
+        
+        /* Smooth Sequential Row Slide Transition */
+        @keyframes slideUpRow {
+            0% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(-45px); opacity: 0.2; }
+        }
+
+        .row-sliding-out {
+            animation: slideUpRow 0.6s ease-in-out forwards;
+        }
+
+        /* Animated Glowing Pulse for Live "Berlangsung" Status */
+        @keyframes pulseGlowEmerald {
+            0%, 100% {
+                box-shadow: 0 0 12px rgba(16, 185, 129, 0.4), inset 0 0 8px rgba(16, 185, 129, 0.2);
+                border-color: rgba(52, 211, 153, 0.9);
+            }
+            50% {
+                box-shadow: 0 0 25px rgba(16, 185, 129, 0.8), inset 0 0 14px rgba(16, 185, 129, 0.4);
+                border-color: rgba(110, 231, 183, 1);
+            }
+        }
+
+        .glow-pulse-emerald {
+            animation: pulseGlowEmerald 2s infinite ease-in-out;
+        }
+
+        /* Radar Beacon Dot Pulse */
+        @keyframes radarBeacon {
+            0% { transform: scale(0.95); opacity: 1; }
+            50% { transform: scale(1.4); opacity: 0.5; }
+            100% { transform: scale(0.95); opacity: 1; }
+        }
+
+        .beacon-ping {
+            animation: radarBeacon 1.5s infinite ease-in-out;
+        }
+
+        /* Pseudo-Fullscreen fallback for permission restricted environments */
+        body.pseudo-fullscreen {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            z-index: 99999 !important;
+            overflow: auto !important;
+        }
+
+        /* SIMPLIFIED ULTRA-CLEAN FULLSCREEN MODE FOR TV / DISPLAY MONITORS */
+        :is(:fullscreen, :-webkit-full-screen, .pseudo-fullscreen) .no-fullscreen-clean {
+            display: none !important;
+        }
+
+        :is(:fullscreen, :-webkit-full-screen, .pseudo-fullscreen) header {
+            padding-top: 1.25rem !important;
+            padding-bottom: 1.25rem !important;
+        }
+
+        :is(:fullscreen, :-webkit-full-screen, .pseudo-fullscreen) main {
+            padding-top: 1rem !important;
+            padding-bottom: 1rem !important;
+            max-width: 100% !important;
+            width: 100% !important;
+        }
+
+        :is(:fullscreen, :-webkit-full-screen, .pseudo-fullscreen) #publicTableBody tr {
+            height: 110px !important;
+        }
+
+        :is(:fullscreen, :-webkit-full-screen, .pseudo-fullscreen) #publicTableBody td {
+            padding-top: 1.25rem !important;
+            padding-bottom: 1.25rem !important;
+            font-size: 1.2rem !important;
+        }
+
+        /* Subtle Glow Effects for TV Display */
+        .glow-emerald {
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.25);
+        }
+        .glow-amber {
+            box-shadow: 0 0 15px rgba(245, 158, 11, 0.2);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between selection:bg-amber-500 selection:text-slate-950" onload="initApp()">
+
+    <!-- TOP HEADER BAR -->
+    <header class="bg-navy-850 border-b border-slate-800 px-4 sm:px-6 py-3 flex items-center justify-between shadow-2xl relative z-40">
+        
+        <!-- LEFT MENU DROPDOWN & LOGO / TITLE -->
+        <div class="flex items-center space-x-3 sm:space-x-4">
+            <!-- MENU DROPDOWN TOGGLE -->
+            <div class="relative">
+                <button onclick="toggleDropdownMenu()" class="w-10 h-10 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-400 flex items-center justify-center border border-slate-700 transition shadow">
+                    <i class="fa-solid fa-bars text-sm"></i>
+                </button>
+
+                <!-- DROPDOWN CONTENT -->
+                <div id="dropdownMenu" class="hidden absolute left-0 mt-2 w-64 bg-navy-850 border border-slate-700 rounded-2xl shadow-2xl p-2 z-50">
+                    <div class="px-3.5 py-2 border-b border-slate-800 text-[11px] font-extrabold text-amber-400 uppercase tracking-wider">
+                        Menu Navigasi PID
+                    </div>
+                    <div class="flex flex-col space-y-1 text-xs pt-1">
+                        <button onclick="switchTab('dashboard'); closeDropdown();" class="w-full text-left px-3.5 py-2.5 text-xs font-semibold text-slate-200 hover:bg-amber-500/10 hover:text-amber-400 rounded-xl flex items-center justify-between transition">
+                            <div class="flex items-center space-x-3">
+                                <i class="fa-solid fa-desktop text-amber-400 w-4"></i>
+                                <span>Layar Utama Display PID</span>
+                            </div>
+                        </button>
+                    </div>
+
+                    <!-- DYNAMIC ADMIN SECTION (HIDDEN UNLESS LOGGED IN) -->
+                    <div id="adminNavSection" class="hidden border-t border-slate-800 my-1 pt-1">
+                        <div class="px-3.5 py-1 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider flex items-center justify-between">
+                            <span>Area Administrator</span>
+                            <i class="fa-solid fa-shield-halved text-amber-500 text-xs"></i>
+                        </div>
+                        <div class="flex flex-col space-y-1 text-xs pt-1">
+                            <button onclick="switchTab('report'); closeDropdown();" class="w-full text-left px-3.5 py-2.5 text-xs font-semibold text-slate-200 hover:bg-amber-500/10 hover:text-amber-400 rounded-xl flex items-center justify-between transition">
+                                <div class="flex items-center space-x-3">
+                                    <i class="fa-solid fa-file-invoice text-amber-400 w-4"></i>
+                                    <span>Laporan Resmi & Cetak</span>
+                                </div>
+                            </button>
+                            <button onclick="switchTab('manage'); closeDropdown();" class="w-full text-left px-3.5 py-2.5 text-xs font-semibold text-slate-200 hover:bg-amber-500/10 hover:text-amber-400 rounded-xl flex items-center justify-between transition">
+                                <div class="flex items-center space-x-3">
+                                    <i class="fa-solid fa-calendar-plus text-emerald-400 w-4"></i>
+                                    <span>Kelola & Tambah Jadwal</span>
+                                </div>
+                            </button>
+                            <button onclick="switchTab('settings'); closeDropdown();" class="w-full text-left px-3.5 py-2.5 text-xs font-semibold text-slate-200 hover:bg-amber-500/10 hover:text-amber-400 rounded-xl flex items-center justify-between transition">
+                                <div class="flex items-center space-x-3">
+                                    <i class="fa-solid fa-sliders text-sky-400 w-4"></i>
+                                    <span>Pengaturan Display</span>
+                                </div>
+                            </button>
+                            <button onclick="switchTab('users'); closeDropdown();" class="w-full text-left px-3.5 py-2.5 text-xs font-semibold text-slate-200 hover:bg-amber-500/10 hover:text-amber-400 rounded-xl flex items-center justify-between transition">
+                                <div class="flex items-center space-x-3">
+                                    <i class="fa-solid fa-users-gear text-emerald-400 w-4"></i>
+                                    <span>Manajemen Pengguna</span>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="border-t border-slate-800 my-1 pt-1">
+                        <button onclick="handleAuthAction(); closeDropdown();" id="authMenuBtn" class="w-full text-left px-3.5 py-2.5 text-xs font-semibold text-amber-400 hover:bg-amber-500/10 rounded-xl flex items-center space-x-3 transition">
+                            <i class="fa-solid fa-lock w-4"></i>
+                            <span>Login Administrator</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- INSTANCE LOGO & TITLE -->
+        <div class="flex items-center space-x-3">
+            <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-amber-600/30 to-amber-400/20 p-[0.5px] flex items-center justify-center shrink-0 shadow-sm overflow-hidden border border-slate-700/40">
+                <div class="w-full h-full bg-navy-900 rounded-[10px] flex items-center justify-center">
+                    <span id="headerLogoFallback" class="text-amber-400 font-extrabold text-[11px]">Logo</span>
+                    <img id="headerLogoImg" src="" alt="Logo" class="hidden w-full h-full object-contain p-1">
+                </div>
+            </div>
+            <div>
+                    <h1 class="font-extrabold text-sm sm:text-base text-white tracking-tight flex items-center space-x-2">
+                        <span id="displayInstitutionTitle">BPSDM HUKUM</span>
+                    </h1>
+                    <p class="text-[11px] font-normal italic text-yellow-400 tracking-wide mt-0.5 drop-shadow">
+                        Sistem Public Information Display (PID)
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT CLOCK & FULLSCREEN -->
+        <div class="flex items-center space-x-3 sm:space-x-4">
+            <div class="text-right hidden sm:block">
+                <div id="liveClock" class="text-amber-400 font-mono font-extrabold text-sm sm:text-base">00:00:00 WIB</div>
+                <div id="liveDate" class="text-[10px] text-slate-300 font-semibold tracking-wider uppercase">JUMAT, 06 NOVEMBER 2026</div>
+            </div>
+            <button onclick="toggleFullScreen()" title="Layar Penuh / Fullscreen" class="w-10 h-10 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-400 flex items-center justify-center border border-slate-700 transition shadow">
+                <i class="fa-solid fa-expand text-sm"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- MAIN BODY CONTAINER -->
+    <main class="flex-1 max-w-[1440px] w-full mx-auto px-4 sm:px-6 py-4 flex flex-col space-y-4">
+
+        <!-- TAB 1: DASHBOARD PID -->
+        <div id="tab-dashboard" class="flex flex-col space-y-4">
+            
+            <!-- CONTROL / FILTER & STATUS BAR -->
+            <div class="bg-navy-850 border border-slate-800 rounded-2xl p-3 flex flex-wrap items-center justify-between gap-3 no-print shadow-xl">
+                
+                <!-- FILTERS -->
+                <div class="flex items-center space-x-1.5 overflow-x-auto pb-1 sm:pb-0">
+                    <button onclick="setFilter('Semua')" id="filter-Semua" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition bg-amber-500 text-slate-950 shadow-lg shadow-amber-500/20 border border-amber-400">Semua</button>
+                    <button onclick="setFilter('Berlangsung')" id="filter-Berlangsung" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-slate-300 bg-navy-800 hover:bg-slate-800 border border-slate-700/80 transition">Berlangsung</button>
+                    <button onclick="setFilter('Segera')" id="filter-Segera" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-slate-300 bg-navy-800 hover:bg-slate-800 border border-slate-700/80 transition">Segera</button>
+                    <button onclick="setFilter('Mendatang')" id="filter-Mendatang" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-slate-300 bg-navy-800 hover:bg-slate-800 border border-slate-700/80 transition">Mendatang</button>
+                    <button onclick="setFilter('Selesai')" id="filter-Selesai" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-slate-300 bg-navy-800 hover:bg-slate-800 border border-slate-700/80 transition">Selesai</button>
+                </div>
+
+                <!-- RIGHT STATS & CLOUD SYNC -->
+                <div class="flex items-center space-x-3 text-xs flex-wrap">
+                    <div class="hidden md:flex items-center space-x-1.5 bg-slate-900 px-3 py-1.5 rounded-xl border border-slate-800 text-slate-300 font-semibold">
+                        <i class="fa-solid fa-cloud text-sky-400"></i>
+                        <span>Cloud Sync: <strong class="text-emerald-400">Realtime</strong></span>
+                    </div>
+
+                    <div class="flex items-center space-x-1.5 bg-navy-800 px-3 py-1.5 rounded-xl border border-slate-700/80 font-bold text-slate-200">
+                        <span>Total: <span id="statTotal" class="text-amber-400">15</span></span>
+                    </div>
+
+                    <div class="flex items-center space-x-1.5 bg-emerald-950/60 px-3 py-1.5 rounded-xl border border-emerald-500/30 font-bold text-emerald-300">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                        <span>Aktif: <span id="statBerlangsung">0</span></span>
+                    </div>
+
+                    <button onclick="toggleAutoScroll()" id="autoScrollBtn" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-1.5 rounded-xl transition flex items-center space-x-1.5 shadow">
+                        <i class="fa-solid fa-rotate"></i>
+                        <span id="autoScrollText">Auto-Rotate: ON</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- PUBLIC SCHEDULE TABLE -->
+            <div class="bg-navy-850 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl flex-1 flex flex-col">
+                <div class="overflow-x-auto flex-1">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-navy-900 border-b border-slate-700/80 text-amber-400 text-xs sm:text-sm font-extrabold uppercase tracking-wider">
+                                <th class="p-4 sm:p-5 w-16 text-center">No</th>
+                                <th class="p-4 sm:p-5 w-56">Waktu Kegiatan</th>
+                                <th class="p-4 sm:p-5">Agenda Kegiatan & Penyelenggara</th>
+                                <th class="p-4 sm:p-5 w-80">Lokasi Ruangan</th>
+                                <th class="p-4 sm:p-5 w-44 text-center">
+                                    <span>Status</span>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody id="publicTableBody" class="divide-y divide-slate-800/80 transition-all duration-500">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- EMPTY STATE -->
+                <div id="emptyMsg" class="hidden p-12 text-center text-slate-400 text-sm">
+                    <i class="fa-solid fa-folder-open text-4xl text-slate-600 mb-2"></i>
+                    <p>Tidak ada kegiatan yang sesuai dengan filter.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: MANAGE SCHEDULE (ADMIN ONLY) -->
+        <div id="tab-manage" class="hidden flex flex-col space-y-4">
+            <div class="bg-navy-850 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-2xl space-y-4">
+                <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-4">
+                    <div>
+                        <h2 class="text-base font-extrabold text-white">Kelola & Tambah Jadwal Kegiatan</h2>
+                        <p class="text-xs text-slate-400">Tambah, ubah, atau hapus agenda harian instansi</p>
+                    </div>
+                    <button onclick="openScheduleModal()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold px-4 py-2 rounded-xl text-xs flex items-center space-x-2 transition shadow-lg">
+                        <i class="fa-solid fa-plus text-sm"></i>
+                        <span>Tambah Agenda Baru</span>
+                    </button>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead>
+                            <tr class="bg-navy-900 border-b border-slate-800 text-amber-400 font-extrabold uppercase">
+                                <th class="p-3.5 w-32">Waktu</th>
+                                <th class="p-3.5">Agenda & Unit</th>
+                                <th class="p-3.5">Lokasi</th>
+                                <th class="p-3.5 text-center w-28">Status</th>
+                                <th class="p-3.5 text-center w-32">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminTableBody" class="divide-y divide-slate-800">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: SETTINGS & BRANDING (ADMIN ONLY) -->
+        <div id="tab-settings" class="hidden flex flex-col space-y-4">
+            <div class="bg-navy-850 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl max-w-5xl mx-auto w-full space-y-6">
+                <!-- HEADER SECTION -->
+                <div class="border-b border-slate-800 pb-4 flex flex-wrap items-center justify-between gap-4">
+                    <div>
+                        <h2 class="font-extrabold text-lg sm:text-xl text-white tracking-tight flex items-center space-x-2">
+                            <i class="fa-solid fa-sliders text-amber-400"></i>
+                            <span>Pengaturan Kustomisasi & Konfigurasi Sistem</span>
+                        </h2>
+                        <p class="text-xs text-slate-400 mt-1">Kelola identitas instansi, logo, tanda tangan pejabat, dan pantau status sistem secara terpusat.</p>
+                    </div>
+                    <span class="bg-amber-500/10 text-amber-400 border border-amber-500/30 px-3 py-1 rounded-xl text-xs font-bold uppercase tracking-wider">
+                        Panel Admin
+                    </span>
+                </div>
+
+                <!-- SUB-MENU NAVIGATION TABS -->
+                <div class="flex items-center space-x-2 border-b border-slate-800 pb-3 overflow-x-auto">
+                    <button onclick="switchSettingsSubTab('instansi')" id="subtab-btn-instansi" class="px-4 py-2 rounded-xl text-xs font-bold transition bg-amber-500 text-slate-950 shadow-lg shadow-amber-500/20 border border-amber-400 whitespace-nowrap">
+                        <i class="fa-solid fa-building-columns mr-1.5"></i> Identitas & Logo
+                    </button>
+                    <button onclick="switchSettingsSubTab('kop')" id="subtab-btn-kop" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-300 bg-slate-900 hover:bg-slate-800 border border-slate-800 transition whitespace-nowrap">
+                        <i class="fa-solid fa-signature mr-1.5"></i> Kop Surat & Penandatangan
+                    </button>
+                    <button onclick="switchSettingsSubTab('runningtext')" id="subtab-btn-runningtext" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-300 bg-slate-900 hover:bg-slate-800 border border-slate-800 transition whitespace-nowrap">
+                        <i class="fa-solid fa-bullhorn mr-1.5"></i> Pengaturan Running Text
+                    </button>
+                    <button onclick="switchSettingsSubTab('cloud')" id="subtab-btn-cloud" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-300 bg-slate-900 hover:bg-slate-800 border border-slate-800 transition whitespace-nowrap">
+                        <i class="fa-solid fa-cloud mr-1.5"></i> Status Cloud Sync
+                    </button>
+                </div>
+
+                <!-- SUB-TAB 1: IDENTITAS & LOGO -->
+                <div id="settings-subtab-instansi" class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- BRANDING & LOGO -->
+                        <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 space-y-4 shadow-xl">
+                            <div class="flex items-center space-x-2.5 border-b border-slate-800 pb-3 mb-3">
+                                <div class="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-500/30">
+                                    <i class="fa-solid fa-image text-xs"></i>
+                                </div>
+                                <h3 class="font-extrabold text-xs text-white uppercase tracking-wider">Logo Instansi Resmi</h3>
+                            </div>
+
+                            <div class="space-y-3">
+                                <div class="flex items-center space-x-4">
+                                    <div class="w-16 h-16 bg-navy-900 border border-slate-700/40 rounded-2xl flex items-center justify-center overflow-hidden shrink-0 shadow-sm">
+                                        <span id="settingsLogoText" class="text-xs text-amber-400 font-bold">Logo</span>
+                                        <img id="settingsLogoImg" src="" alt="Preview Logo" class="hidden w-full h-full object-contain p-1">
+                                    </div>
+                                    <div class="space-y-2 flex-1">
+                                        <input type="file" accept="image/*" onchange="handleLogoUpload(event)" class="text-[11px] text-slate-400 file:mr-2 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-[11px] file:font-bold file:bg-amber-500 file:text-slate-950 hover:file:bg-amber-400 cursor-pointer w-full">
+                                        <button onclick="resetLogo()" class="text-xs text-rose-400 hover:underline font-semibold block">Hapus / Reset Logo</button>
+                                    </div>
+                                </div>
+                                <p class="text-[11px] text-slate-400 italic">Format gambar PNG/JPG transparan agar pas di kop surat.</p>
+                            </div>
+                        </div>
+
+                        <!-- NAMA DISPLAY PID -->
+                        <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 space-y-4 shadow-xl">
+                            <div class="flex items-center space-x-2.5 border-b border-slate-800 pb-3 mb-3">
+                                <div class="w-8 h-8 rounded-xl bg-sky-500/20 text-sky-400 flex items-center justify-center border border-sky-500/30">
+                                    <i class="fa-solid fa-desktop text-xs"></i>
+                                </div>
+                                <h3 class="font-extrabold text-xs text-white uppercase tracking-wider">Nama Display PID (Header)</h3>
+                            </div>
+
+                            <div class="space-y-3">
+                                <div>
+                                    <label class="block text-slate-300 mb-1.5 text-xs font-semibold">Teks Header Di Atas PID</label>
+                                    <input type="text" id="institutionNameInput" value="BPSDM HUKUM" oninput="updateInstitutionName()" onkeyup="updateInstitutionName()" placeholder="Contoh: BPSDM HUKUM" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white text-xs font-bold focus:outline-none focus:border-amber-500">
+                                </div>
+                                <p class="text-[11px] text-slate-400 italic">Nama ini khusus tampil di pojok kiri atas monitor PID (di atas tulisan "Sistem Public Information Display"). Tidak mengubah kop surat laporan.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SUB-TAB 2: KOP SURAT & PENANDATANGAN -->
+                <div id="settings-subtab-kop" class="hidden space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- KOP SURAT FIELDS -->
+                        <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 space-y-4 shadow-xl">
+                            <div class="flex items-center space-x-2.5 border-b border-slate-800 pb-3 mb-3">
+                                <div class="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-500/30">
+                                    <i class="fa-solid fa-file-lines text-xs"></i>
+                                </div>
+                                <h3 class="font-extrabold text-xs text-white uppercase tracking-wider">Teks Kop Surat</h3>
+                            </div>
+
+                            <div class="space-y-3 text-xs">
+                                <div>
+                                    <label class="block text-slate-300 font-semibold mb-1.5">Baris Atas (Kementerian / Instansi Induk)</label>
+                                    <input type="text" id="kopTopLineInput" value="KEMENTERIAN HUKUM REPUBLIK INDONESIA" oninput="updateKopText()" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white font-semibold focus:outline-none focus:border-amber-500">
+                                </div>
+                                <div>
+                                    <label class="block text-slate-300 font-semibold mb-1.5">Baris Utama (Nama Satuan Kerja / Badan)</label>
+                                    <input type="text" id="kopMainLineInput" value="BADAN PENGEMBANGAN SUMBER DAYA MANUSIA HUKUM" oninput="updateKopText()" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white font-bold focus:outline-none focus:border-amber-500">
+                                </div>
+                                <div>
+                                    <label class="block text-slate-300 font-semibold mb-1.5">Alamat Kantor</label>
+                                    <input type="text" id="kopAddressInput" value="Jalan Raya Gandul No.4 Cinere Depok 16512" oninput="updateKopText()" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white font-semibold focus:outline-none focus:border-amber-500">
+                                </div>
+                                <div>
+                                    <label class="block text-slate-300 font-semibold mb-1.5">Nomor Telepon</label>
+                                    <input type="text" id="kopPhoneInput" value="(021) 7540077" oninput="updateKopText()" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white font-semibold focus:outline-none focus:border-amber-500">
+                                </div>
+                                <div>
+                                    <label class="block text-slate-300 font-semibold mb-1.5">Laman / Website & Pos-el</label>
+                                    <input type="text" id="kopContactInput" value="https://bpsdm.kemenkum.go.id, Pos-el: bpsdm@kemenkum.go.id" oninput="updateKopText()" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white font-semibold focus:outline-none focus:border-amber-500">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- TANDA TANGAN PEJABAT -->
+                        <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 space-y-4 shadow-xl">
+                            <div class="flex items-center space-x-2.5 border-b border-slate-800 pb-3 mb-3">
+                                <div class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-500/30">
+                                    <i class="fa-solid fa-signature text-xs"></i>
+                                </div>
+                                <h3 class="font-extrabold text-xs text-white uppercase tracking-wider">Tanda Tangan Pejabat & Posisi Presisi</h3>
+                            </div>
+
+                            <div class="space-y-3">
+                                <div class="flex items-center space-x-4">
+                                    <div class="w-20 h-14 bg-white border border-slate-700 rounded-xl flex items-center justify-center overflow-hidden shrink-0 shadow-inner">
+                                        <span id="settingsSigText" class="text-[10px] text-slate-900 font-bold">TTD</span>
+                                        <img id="settingsSigImg" src="" alt="Preview TTD" class="hidden w-full h-full object-contain p-1">
+                                    </div>
+                                    <div class="space-y-2 flex-1">
+                                        <input type="file" accept="image/*" onchange="handleSigUpload(event)" class="text-[11px] text-slate-400 file:mr-2 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-[11px] file:font-bold file:bg-emerald-500 file:text-slate-950 hover:file:bg-emerald-400 cursor-pointer w-full">
+                                        <button onclick="resetSig()" class="text-xs text-rose-400 hover:underline font-semibold block">Hapus Tanda Tangan</button>
+                                    </div>
+                                </div>
+                                <p class="text-[11px] text-slate-400 italic">Unggah tanda tangan digital transparan untuk otomatis tercetak di laporan.</p>
+                            </div>
+
+                            <!-- PENGATURAN POSISI & UKURAN TANDA TANGAN -->
+                            <div class="bg-slate-950 p-3.5 rounded-xl border border-slate-800/80 space-y-3 text-xs">
+                                <div class="font-extrabold text-amber-400 flex items-center justify-between border-b border-slate-800 pb-2">
+                                    <span class="flex items-center"><i class="fa-solid fa-arrows-up-down-left-right mr-1.5"></i> Atur Posisi Presisi TTD</span>
+                                    <button onclick="resetSigPosition()" class="text-[10px] text-slate-400 hover:text-white underline">Reset Posisi</button>
+                                </div>
+                                <div class="grid grid-cols-3 gap-2 text-[11px]">
+                                    <div>
+                                        <label class="block text-slate-400 mb-1">Vertikal (Y): <span id="valSigY" class="text-white font-bold">0px</span></label>
+                                        <input type="range" id="sigPosY" min="-40" max="40" value="0" oninput="updateSigPositionControls()" class="w-full accent-amber-500 cursor-pointer">
+                                    </div>
+                                    <div>
+                                        <label class="block text-slate-400 mb-1">Horisontal (X): <span id="valSigX" class="text-white font-bold">0px</span></label>
+                                        <input type="range" id="sigPosX" min="-60" max="60" value="0" oninput="updateSigPositionControls()" class="w-full accent-amber-500 cursor-pointer">
+                                    </div>
+                                    <div>
+                                        <label class="block text-slate-400 mb-1">Tinggi TTD: <span id="valSigHeight" class="text-white font-bold">75px</span></label>
+                                        <input type="range" id="sigPosHeight" min="40" max="120" value="75" oninput="updateSigPositionControls()" class="w-full accent-amber-500 cursor-pointer">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="space-y-3 pt-3 border-t border-slate-800 text-xs">
+                                <div>
+                                    <label class="block text-slate-300 font-semibold mb-1.5">Jabatan Pejabat</label>
+                                    <input type="text" id="signerTitle" value="Sekretaris," oninput="updateSignerInfo()" placeholder="Contoh: Sekretaris," class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white font-semibold focus:outline-none focus:border-amber-500">
+                                </div>
+                                <div>
+                                    <label class="block text-slate-300 font-semibold mb-1.5">Nama Pejabat Penandatangan</label>
+                                    <input type="text" id="signerName" value="Jusman" oninput="updateSignerInfo()" placeholder="Contoh: Jusman" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white font-semibold focus:outline-none focus:border-amber-500">
+                                </div>
+                                <div>
+                                    <label class="block text-slate-300 font-semibold mb-1.5">NIP Pejabat (Opsional)</label>
+                                    <input type="text" id="signerNip" value="198001012005011001" oninput="updateSignerInfo()" placeholder="Contoh: 198001012005011001" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white font-semibold focus:outline-none focus:border-amber-500">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- LOKASI & TANGGAL SURAT -->
+                        <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 space-y-4 shadow-xl">
+                            <div class="flex items-center space-x-2.5 border-b border-slate-800 pb-3 mb-3">
+                                <div class="w-8 h-8 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center border border-purple-500/30">
+                                    <i class="fa-solid fa-calendar-days text-xs"></i>
+                                </div>
+                                <h3 class="font-extrabold text-xs text-white uppercase tracking-wider">Lokasi & Tanggal Surat</h3>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-3 text-xs">
+                                <div>
+                                    <label class="block text-slate-300 font-semibold mb-1.5">Kota Dokumen</label>
+                                    <input type="text" id="signerCity" value="Depok" oninput="updateSignerInfo()" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white font-semibold focus:outline-none focus:border-amber-500">
+                                </div>
+                                <div>
+                                    <label class="block text-slate-300 font-semibold mb-1.5">Tanggal Surat</label>
+                                    <input type="text" id="signerDate" value="21 September 2026" oninput="updateSignerInfo()" placeholder="21 September 2026" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white font-semibold focus:outline-none focus:border-amber-500">
+                                </div>
+                            </div>
+                            <p class="text-[11px] text-slate-400 italic">Tanggal penandatanganan laporan resmi.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SUB-TAB: PENGATURAN RUNNING TEXT -->
+                <div id="settings-subtab-runningtext" class="hidden space-y-6">
+                    <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 space-y-4 shadow-xl max-w-2xl mx-auto">
+                        <div class="flex items-center space-x-2.5 border-b border-slate-800 pb-3 mb-3">
+                            <div class="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-500/30">
+                                <i class="fa-solid fa-bullhorn text-xs"></i>
+                            </div>
+                            <h3 class="font-extrabold text-xs text-white uppercase tracking-wider">Kustomisasi Teks Berjalan (Running Text)</h3>
+                        </div>
+
+                        <div class="space-y-3">
+                            <label class="block text-slate-300 text-xs font-semibold">Isi Pengumuman / Pesan Berjalan di Bawah Layar</label>
+                            <textarea id="runningTextInput" rows="4" oninput="updateRunningText()" placeholder="Ketik pengumuman di sini..." class="w-full bg-slate-950 border border-slate-700 rounded-xl p-3.5 text-white text-xs font-medium focus:outline-none focus:border-amber-500">Selamat Datang di BPSDM Hukum dan HAM • Harap menjaga ketertiban, ketenangan, serta mematuhi protokol kesehatan selama berada di lingkungan kampus BPSDM • Jadwal kegiatan harian diperbarui secara real-time oleh sistem PID.</textarea>
+                            <p class="text-[11px] text-slate-400 italic">Perubahan akan langsung diterapkan secara real-time pada teks berjalan di bagian bawah monitor PID.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SUB-TAB 3: STATUS CLOUD SYNC -->
+                <div id="settings-subtab-cloud" class="hidden space-y-6">
+                    <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 space-y-4 shadow-xl max-w-2xl mx-auto">
+                        <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-3">
+                            <div class="flex items-center space-x-2.5">
+                                <div class="w-8 h-8 rounded-xl bg-sky-500/20 text-sky-400 flex items-center justify-center border border-sky-500/30">
+                                    <i class="fa-solid fa-cloud text-xs"></i>
+                                </div>
+                                <h3 class="font-extrabold text-xs text-white uppercase tracking-wider">Status Cloud Sync</h3>
+                            </div>
+                            <span class="inline-flex items-center space-x-1.5 bg-emerald-950/90 px-3 py-1 rounded-lg text-[10px] font-extrabold text-emerald-400 border border-emerald-500/40 shadow-sm">
+                                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                                <span>CONNECTED</span>
+                            </span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3 text-xs text-slate-300">
+                            <div class="bg-slate-950 p-3.5 rounded-xl border border-slate-800/80">
+                                <div class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Mode Database</div>
+                                <div class="font-extrabold text-amber-400 mt-1">Realtime Cloud Sync</div>
+                            </div>
+                            <div class="bg-slate-950 p-3.5 rounded-xl border border-slate-800/80">
+                                <div class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Multi-Device</div>
+                                <div class="font-extrabold text-emerald-400 mt-1">Aktif & Sinkron</div>
+                            </div>
+                        </div>
+                        <p class="text-[11px] text-slate-400 italic">Data jadwal dan pengaturan otomatis disinkronkan ke seluruh perangkat penampil di instansi.</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- TAB: MANAJEMEN PENGGUNA & RESET SANDI (ADMIN ONLY) -->
+        <div id="tab-users" class="hidden flex flex-col space-y-4">
+            <div class="bg-navy-850 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl max-w-4xl mx-auto w-full space-y-6">
+                <div class="border-b border-slate-800 pb-4 flex flex-wrap items-center justify-between gap-4">
+                    <div>
+                        <h2 class="font-extrabold text-lg sm:text-xl text-white tracking-tight flex items-center space-x-2">
+                            <i class="fa-solid fa-users-gear text-emerald-400"></i>
+                            <span>Manajemen Pengguna & Pemulihan Kata Sandi</span>
+                        </h2>
+                        <p class="text-xs text-slate-400 mt-1">Tambah akun administrator baru atau ubah kata sandi jika lupa.</p>
+                    </div>
+                    <button onclick="openUserModal()" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold px-4 py-2.5 rounded-xl text-xs flex items-center space-x-2 transition shadow-lg">
+                        <i class="fa-solid fa-user-plus text-sm"></i>
+                        <span>Tambah Pengguna Baru</span>
+                    </button>
+                </div>
+
+                <!-- INFO BOX LUPA PASSWORD -->
+                <div class="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-4 flex items-start space-x-3 text-xs text-amber-200">
+                    <i class="fa-solid fa-circle-info text-amber-400 text-base mt-0.5"></i>
+                    <div>
+                        <span class="font-bold">Solusi Lupa Password:</span> Jika Anda lupa kata sandi akun admin, Anda dapat masuk menggunakan akun default (Username: <code class="bg-slate-900 px-1.5 py-0.5 rounded text-amber-300 font-bold">admin</code>, Password: <code class="bg-slate-900 px-1.5 py-0.5 rounded text-amber-300 font-bold">admin123</code>) melalui tombol Login, atau tambahkan akun baru dengan kata sandi mandiri di tabel bawah ini.
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead>
+                            <tr class="bg-navy-900 border-b border-slate-800 text-amber-400 font-extrabold uppercase">
+                                <th class="p-3.5 w-16 text-center">No</th>
+                                <th class="p-3.5">Username Pengguna</th>
+                                <th class="p-3.5">Hak Akses / Peran</th>
+                                <th class="p-3.5 text-center w-32">Aksi (Reset Sandi)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="userTableBody" class="divide-y divide-slate-800">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 4: LAPORAN RESMI & CETAK -->
+        <div id="tab-report" class="hidden flex flex-col space-y-4">
+            <div class="bg-navy-850 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-2xl flex flex-col space-y-4">
+                
+                <!-- FILTER PERIODE & TOMBOL EKSPOR -->
+                <div class="flex flex-wrap items-center justify-between gap-3 no-print border-b border-slate-800 pb-4">
+                    <div class="flex items-center space-x-3">
+                        <label class="text-xs font-bold text-slate-300">Periode Laporan:</label>
+                        <select id="reportPeriodFilter" onchange="renderReportTableAndCharts()" class="bg-slate-950 border border-slate-700 text-xs text-white rounded-xl px-3 py-2 font-semibold focus:outline-none focus:border-amber-500">
+                            <option value="harian">Harian (Hari Ini)</option>
+                            <option value="bulanan">Bulanan (November 2026)</option>
+                            <option value="tahunan">Tahunan (2026)</option>
+                        </select>
+                    </div>
+
+                    <div class="flex items-center space-x-2">
+                        <button onclick="openExportModal()" class="bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-slate-950 font-extrabold px-4 py-2.5 rounded-xl text-xs flex items-center space-x-2 transition shadow-lg">
+                            <i class="fa-solid fa-download text-sm"></i>
+                            <span>Simpan / Cetak Laporan</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- OFFICIAL PRINTABLE REPORT SHEET -->
+                <div id="reportPrintArea" class="print-area bg-white text-slate-900 p-6 sm:p-10 rounded-2xl shadow-xl space-y-6">
+                    
+                    <!-- KOP SURAT RESMI -->
+                    <div class="border-b-4 border-slate-900 pb-4 flex items-center justify-between">
+                        <div class="w-16 h-16 bg-slate-50 text-slate-800 rounded-xl flex items-center justify-center font-extrabold text-xs overflow-hidden shrink-0 border border-slate-200/60 shadow-xs">
+                            <span id="reportKopText">Logo</span>
+                            <img id="reportKopImg" src="" alt="Kop Logo" class="hidden w-full h-full object-contain p-1">
+                        </div>
+                        <div class="text-center flex-1 px-4">
+                            <h2 id="reportKopTopLine" class="font-extrabold text-xs sm:text-sm uppercase tracking-wider text-slate-800">KEMENTERIAN HUKUM REPUBLIK INDONESIA</h2>
+                            <h1 id="reportKopInstitutionTitle" class="font-extrabold text-base sm:text-lg uppercase tracking-tight text-slate-950 mt-0.5">BADAN PENGEMBANGAN SUMBER DAYA MANUSIA HUKUM</h1>
+                            <p id="reportKopAddress" class="text-[10px] text-slate-600 mt-0.5">Jalan Raya Gandul No.4 Cinere Depok 16512</p>
+                            <p id="reportKopPhone" class="text-[10px] text-slate-600">Telepon: (021) 7540077</p>
+                            <p id="reportKopContact" class="text-[10px] text-slate-600">Laman: https://bpsdm.kemenkum.go.id, Pos-el: bpsdm@kemenkum.go.id</p>
+                        </div>
+                        <div class="w-16"></div>
+                    </div>
+
+                    <!-- JUDUL LAPORAN -->
+                    <div class="text-center space-y-1">
+                        <h3 class="font-extrabold text-sm sm:text-base uppercase text-slate-950 tracking-wide">LAPORAN</h3>
+                        <p id="reportPeriodTitle" class="text-xs font-bold text-amber-700">PERIODE HARIAN: JUMAT, 06 NOVEMBER 2026</p>
+                    </div>
+
+                    <!-- GRAFIK STATISTIK LAPORAN -->
+                    <div id="reportChartsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2 pb-2">
+                        <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl flex flex-col items-center justify-center text-center">
+                            <h4 class="text-xs font-bold text-slate-700 mb-1 uppercase">Distribusi Status Kegiatan (Pie Chart)</h4>
+                            <p id="pieChartSummary" class="text-[11px] font-semibold text-amber-700 mb-2">Total Agenda: 0 Kegiatan</p>
+                            <div class="w-full h-48 flex justify-center items-center overflow-hidden">
+                                <canvas id="chartPieReport" class="max-w-full max-h-48 mx-auto"></canvas>
+                            </div>
+                        </div>
+                        <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl flex flex-col items-center justify-center text-center">
+                            <h4 class="text-xs font-bold text-slate-700 mb-1 uppercase">Grafik Statistik Agenda (Bar Chart)</h4>
+                            <p id="barChartSummary" class="text-[11px] font-semibold text-slate-600 mb-2">Rincian Per Status Kegiatan</p>
+                            <div class="w-full h-48 flex justify-center items-center overflow-hidden">
+                                <canvas id="chartBarReport" class="max-w-full max-h-48 mx-auto"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TABEL LAPORAN UTAMA -->
+                    <div class="overflow-x-auto pt-2">
+                        <table class="w-full text-left border-collapse text-xs">
+                            <thead>
+                                <tr class="bg-slate-900 text-white font-bold text-center">
+                                    <th class="p-2.5 border border-slate-900 w-12">No</th>
+                                    <th class="p-2.5 border border-slate-900 w-36">Waktu</th>
+                                    <th class="p-2.5 border border-slate-900">Agenda Kegiatan & Penyelenggara</th>
+                                    <th class="p-2.5 border border-slate-900 w-48">Lokasi</th>
+                                    <th class="p-2.5 border border-slate-900 w-28">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="reportTableBody" class="divide-y divide-slate-300">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- TANDA TANGAN PEJABAT -->
+                    <div class="pt-8 flex justify-end">
+                        <div class="text-left w-72 space-y-1">
+                            <p class="text-xs text-slate-900">Dikeluarkan di <span id="displaySignerCity">Depok</span></p>
+                            <p class="text-xs text-slate-900">pada tanggal <span id="displaySignerDate">21 September 2026</span></p>
+                            <div class="pt-1">
+                                <p id="displaySignerTitle" class="text-xs text-slate-900 font-bold">Sekretaris,</p>
+                            </div>
+                            <div class="h-24 flex items-center justify-start relative my-1 overflow-visible border border-dashed border-slate-200 rounded-lg p-1 bg-slate-50/50">
+                                <span id="reportSigFallback" class="text-[11px] text-slate-400 italic absolute inset-0 flex items-center justify-center text-center p-2">[ Tanda Tangan Elektronik / Stempel ]</span>
+                                <img id="reportSigImg" src="" alt="Tanda Tangan" class="hidden absolute transition-all duration-75" style="top: 0px; left: 0px; height: 75px; object-fit: contain; z-index: 20;">
+                            </div>
+                            <p id="displaySignerName" class="font-bold text-xs text-slate-950">Jusman</p>
+                            <p id="displaySignerNip" class="text-[11px] text-slate-700 hidden">NIP. 198001012005011001</p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- FOOTER RUNNING TEXT TICKER -->
+    <footer class="bg-[#0b1329] border-t border-slate-800 py-2.5 px-4 no-print overflow-hidden flex items-center shadow-inner">
+        <div class="bg-amber-500 text-slate-950 font-extrabold text-[10px] sm:text-xs px-2.5 py-1 rounded-lg mr-3 uppercase tracking-wider shrink-0 shadow">
+            <i class="fa-solid fa-bullhorn mr-1"></i> Pengumuman
+        </div>
+        <div class="overflow-hidden whitespace-nowrap flex-1">
+            <p id="marqueeDisplayContent" class="animate-marquee text-xs font-semibold text-slate-200">
+                Selamat Datang di BPSDM Hukum dan HAM • Harap menjaga ketertiban, ketenangan, serta mematuhi protokol kesehatan selama berada di lingkungan kampus BPSDM • Jadwal kegiatan harian diperbarui secara real-time oleh sistem PID.
+            </p>
+        </div>
+    </footer>
+
+    <!-- MODAL PILIHAN EKSPOR & CETAK (EXCEL, WORD, PDF) -->
+    <div id="exportModal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-navy-850 border border-slate-700 w-full max-w-sm rounded-2xl p-6 shadow-2xl space-y-4 relative">
+            <button onclick="closeExportModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            <div class="flex items-center space-x-3 border-b border-slate-700 pb-3">
+                <div class="w-10 h-10 bg-amber-500/20 text-amber-400 rounded-xl flex items-center justify-center text-lg border border-amber-500/30">
+                    <i class="fa-solid fa-file-arrow-down"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-sm text-white">Simpan / Cetak Laporan</h3>
+                    <p class="text-[11px] text-amber-400">Pilih format unduhan dokumen</p>
+                </div>
+            </div>
+            
+            <div class="space-y-2.5 pt-2">
+                <button onclick="exportToExcel()" class="w-full bg-slate-900 hover:bg-slate-800 border border-slate-700 text-left px-4 py-3 rounded-xl flex items-center space-x-3 transition group">
+                    <i class="fa-solid fa-file-excel text-emerald-400 text-lg group-hover:scale-110 transition"></i>
+                    <div>
+                        <div class="font-bold text-xs text-white">Format Microsoft Excel</div>
+                        <div class="text-[10px] text-slate-400">Unduh data laporan dalam format .csv</div>
+                    </div>
+                </button>
+
+                <button onclick="exportToWord()" class="w-full bg-slate-900 hover:bg-slate-800 border border-slate-700 text-left px-4 py-3 rounded-xl flex items-center space-x-3 transition group">
+                    <i class="fa-solid fa-file-word text-sky-400 text-lg group-hover:scale-110 transition"></i>
+                    <div>
+                        <div class="font-bold text-xs text-white">Format Microsoft Word</div>
+                        <div class="text-[10px] text-slate-400">Unduh dokumen resmi .doc dengan kop</div>
+                    </div>
+                </button>
+
+                <button onclick="triggerPrintReport()" type="button" class="w-full bg-slate-900 hover:bg-slate-800 border border-slate-700 text-left px-4 py-3 rounded-xl flex items-center space-x-3 transition group cursor-pointer">
+                    <i class="fa-solid fa-file-pdf text-rose-400 text-lg group-hover:scale-110 transition"></i>
+                    <div>
+                        <div class="font-bold text-xs text-white">Simpan / Unduh Format PDF</div>
+                        <div class="text-[10px] text-slate-400">Unduh langsung dokumen PDF (A4)</div>
+                    </div>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- LOGIN MODAL DIALOG -->
+    <div id="loginModal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-navy-850 border border-slate-700 w-full max-w-sm rounded-2xl p-6 shadow-2xl space-y-4 relative">
+            <button onclick="closeLoginModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            <div class="flex items-center space-x-3 border-b border-slate-700 pb-3">
+                <div class="w-10 h-10 bg-amber-500/20 text-amber-400 rounded-xl flex items-center justify-center text-lg border border-amber-500/30">
+                    <i class="fa-solid fa-user-shield"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-sm text-white">Login Administrator</h3>
+                    <p class="text-[11px] text-amber-400">Silakan masukkan username dan password</p>
+                </div>
+            </div>
+            <form onsubmit="submitAdminLogin(event)" class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-semibold text-slate-300 mb-1">Username Admin</label>
+                    <input type="text" id="loginUsername" required placeholder="Masukkan username" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-amber-500">
+                </div>
+                <div>
+                    <label class="block font-semibold text-slate-300 mb-1">Password</label>
+                    <input type="password" id="loginPassword" required placeholder="Masukkan password" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-amber-500">
+                </div>
+                <div id="loginErrorMsg" class="hidden text-red-400 text-[11px] bg-red-950/60 p-2 rounded-lg border border-red-800/50">
+                    Username atau password salah!
+                </div>
+                <div class="pt-2">
+                    <button type="submit" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold py-2.5 rounded-xl transition shadow-lg">
+                        Masuk Ke Panel Admin
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL SCHEDULE FORM -->
+    <div id="scheduleModal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-navy-850 border border-slate-700 w-full max-w-lg rounded-2xl p-6 shadow-2xl space-y-4 relative">
+            <button onclick="closeScheduleModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            <h3 id="scheduleModalTitle" class="font-extrabold text-base text-white border-b border-slate-700 pb-3">Tambah Agenda Kegiatan</h3>
+            <form onsubmit="saveScheduleItem(event)" class="space-y-3 text-xs">
+                <input type="hidden" id="editScheduleId">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-slate-300 font-semibold mb-1">Tanggal Mulai *</label>
+                        <input type="date" id="inputStartDate" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white">
+                    </div>
+                    <div>
+                        <label class="block text-slate-300 font-semibold mb-1">Tanggal Selesai *</label>
+                        <input type="date" id="inputEndDate" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-slate-300 font-semibold mb-1">Jam Mulai *</label>
+                        <input type="text" id="inputStartTime" placeholder="09:00" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white">
+                    </div>
+                    <div>
+                        <label class="block text-slate-300 font-semibold mb-1">Jam Selesai *</label>
+                        <input type="text" id="inputEndTime" placeholder="11:30" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-slate-300 font-semibold mb-1">Nama Kegiatan / Agenda *</label>
+                    <input type="text" id="inputTitle" required placeholder="Contoh: Rapat Pleno Tim Penilai Kinerja" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white">
+                </div>
+                <div>
+                    <label class="block text-slate-300 font-semibold mb-1">Penyelenggara / Keterangan</label>
+                    <input type="text" id="inputUnit" placeholder="Contoh: Bagian Kepegawaian • Hadir seluruh anggota" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white">
+                </div>
+                <div>
+                    <label class="block text-slate-300 font-semibold mb-1">Lokasi / Ruangan *</label>
+                    <input type="text" id="inputLocation" required placeholder="Contoh: Ruang Rapat Pimpinan Lantai 2" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white">
+                </div>
+                <div class="flex justify-end space-x-2 pt-3">
+                    <button type="button" onclick="closeScheduleModal()" class="px-4 py-2 rounded-xl text-slate-300 hover:bg-slate-800 font-semibold">Batal</button>
+                    <button type="submit" class="px-5 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold rounded-xl transition">Simpan Agenda</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL USER FORM (TAMBAH / RESET SANDI) -->
+    <div id="userModal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-navy-850 border border-slate-700 w-full max-w-sm rounded-2xl p-6 shadow-2xl space-y-4 relative">
+            <button onclick="closeUserModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            <h3 id="userModalTitle" class="font-extrabold text-base text-white border-b border-slate-700 pb-3">Tambah Pengguna Baru</h3>
+            <form onsubmit="saveUserItem(event)" class="space-y-3 text-xs">
+                <div>
+                    <label class="block text-slate-300 font-semibold mb-1">Username *</label>
+                    <input type="text" id="inputUserUsername" required placeholder="Contoh: operator_bpsdm" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-amber-500">
+                </div>
+                <div>
+                    <label class="block text-slate-300 font-semibold mb-1">Kata Sandi Baru *</label>
+                    <input type="password" id="inputUserPassword" required placeholder="Masukkan kata sandi" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-amber-500">
+                </div>
+                <div>
+                    <label class="block text-slate-300 font-semibold mb-1">Peran / Hak Akses</label>
+                    <select id="inputUserRole" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-white font-semibold focus:outline-none focus:border-amber-500">
+                        <option value="Administrator Utama">Administrator Utama</option>
+                        <option value="Operator Jadwal">Operator Jadwal</option>
+                    </select>
+                </div>
+                <div class="flex justify-end space-x-2 pt-3">
+                    <button type="button" onclick="closeUserModal()" class="px-4 py-2 rounded-xl text-slate-300 hover:bg-slate-800 font-semibold">Batal</button>
+                    <button type="submit" class="px-5 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold rounded-xl transition">Simpan Akun</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- SCRIPT LOGIC -->
+    <script>
+        // GLOBAL STATE & STORAGE DEFAULTS
+        let schedules = [
+            // 3 BERLANGSUNG (Active right now around 16:34 WIB)
+            { id: 1, startDate: '2026-11-06', endDate: '2026-11-06', startTime: '15:00', endTime: '17:00', title: 'Sidang Pleno Evaluasi Kinerja Triwulan IV', unit: 'Biro Perencanaan & Keuangan', location: 'Ruang Sidang Utama Gd. A' },
+            { id: 2, startDate: '2026-11-06', endDate: '2026-11-06', startTime: '15:30', endTime: '18:00', title: 'Workshop Penguatan Kapasitas Widyaiswara Ahli', unit: 'Pusat Pengembangan Kompetensi', location: 'Ruang Multimedia Gd. B' },
+            { id: 3, startDate: '2026-11-06', endDate: '2026-11-06', startTime: '16:00', endTime: '17:30', title: 'Pengarahan Teknis Administrasi Kepegawaian', unit: 'Bagian Kepegawaian & Ortala', location: 'Auditorium Syarifudin' },
+
+            // 4 SEGERA (Today, start time is later in the evening)
+            { id: 4, startDate: '2026-11-06', endDate: '2026-11-06', startTime: '18:30', endTime: '20:00', title: 'Rapat Koordinasi Tim Pengawas Internal', unit: 'Inspektorat BPSDM Hukum', location: 'Ruang Rapat Pimpinan Lt. 2' },
+            { id: 5, startDate: '2026-11-06', endDate: '2026-11-06', startTime: '19:00', endTime: '21:00', title: 'Kuliah Umum Kepemimpinan Strategis (PKN Tingkat II)', unit: 'Pusat Diklat Kepemimpinan', location: 'Auditorium Utama' },
+            { id: 6, startDate: '2026-11-06', endDate: '2026-11-06', startTime: '19:30', endTime: '21:30', title: 'Simulasi Ujian CAT Penerimaan Calon Pegawai', unit: 'Pusat Assessment Center', location: 'Laboratorium Komputer Lt. 3' },
+            { id: 7, startDate: '2026-11-06', endDate: '2026-11-06', startTime: '20:00', endTime: '22:00', title: 'Diskusi Panel Pembaharuan Kurikulum Diklat', unit: 'Pusat Diklat Teknis & Fungsional', location: 'Ruang Diskusi Panel 1' },
+
+            // 5 MENDATANG (Future dates: November 7, 8, 9, etc.)
+            { id: 8, startDate: '2026-11-07', endDate: '2026-11-07', startTime: '08:30', endTime: '11:30', title: 'Pelatihan Sertifikasi Perancang Perundang-Undangan', unit: 'Pusat Diklat Fungsional', location: 'Ruang Kelas 302' },
+            { id: 9, startDate: '2026-11-08', endDate: '2026-11-08', startTime: '09:00', endTime: '12:00', title: 'Seminar Nasional Transformasi Digital Hukum', unit: 'Bagian Kerjasama & Humas', location: 'Auditorium Utama BPSDM' },
+            { id: 10, startDate: '2026-11-09', endDate: '2026-11-09', startTime: '08:00', endTime: '10:30', title: 'Rapat Koordinasi Penyelenggaraan Diklat Jarak Jauh', unit: 'Bidang Teknologi Pembelajaran', location: 'Ruang Rapat Gd. C' },
+            { id: 11, startDate: '2026-11-10', endDate: '2026-11-10', startTime: '10:00', endTime: '13:00', title: 'Sosialisasi Kebijakan ASN BerAKHLAK', unit: 'Bagian Kepegawaian', location: 'Aula Serbaguna' },
+            { id: 12, startDate: '2026-11-11', endDate: '2026-11-11', startTime: '13:30', endTime: '16:00', title: 'Lokakarya Penulisan Karya Tulis Ilmiah Widyaiswara', unit: 'Pusat Kajian & Riset', location: 'Ruang Baca Perpustakaan' },
+
+            // 5 SELESAI (Today earlier hours / Past dates)
+            { id: 13, startDate: '2026-11-06', endDate: '2026-11-06', startTime: '08:00', endTime: '09:30', title: 'Apel Pagi & Pengarahan Kepala BPSDM Hukum', unit: 'Sekretariat Badan', location: 'Lapangan Upacara Kampus BPSDM' },
+            { id: 14, startDate: '2026-11-06', endDate: '2026-11-06', startTime: '10:00', endTime: '12:00', title: 'Rapat Koordinasi Anggaran Semester II', unit: 'Bagian Keuangan', location: 'Ruang Rapat Utama' },
+            { id: 15, startDate: '2026-11-05', endDate: '2026-11-05', startTime: '09:00', endTime: '15:00', title: 'Evaluasi Tahunan Akuntabilitas Kinerja Instansi', unit: 'Inspektorat', location: 'Auditorium Utama' },
+            { id: 16, startDate: '2026-11-04', endDate: '2026-11-04', startTime: '08:30', endTime: '11:30', title: 'Pelatihan Manajemen Risiko Sektor Publik', unit: 'Pusat Diklat Teknis', location: 'Ruang Kelas 201' },
+            { id: 17, startDate: '2026-11-03', endDate: '2026-11-03', startTime: '13:00', endTime: '16:30', title: 'Workshop Penjaminan Mutu Penyelenggaraan Diklat', unit: 'Bidang Penjaminan Mutu', location: 'Ruang Multimedia' }
+        ];
+
+        // Registered System Users
+        let systemUsers = JSON.parse(localStorage.getItem('bpsdm_users')) || [
+            { id: 1, username: 'admin', password: 'admin123', role: 'Administrator Utama' },
+            { id: 2, username: 'operator', password: 'operator123', role: 'Operator Jadwal' }
+        ];
+
+        let isAdminLoggedIn = false;
+        let isAutoScrollActive = true;
+        let rotateInterval = null;
+        let currentFilter = 'Semua';
+        const todayISO = new Date().toISOString().split('T')[0];
+        const ITEMS_PER_PAGE = 5;
+        let activeDisplayQueue = [];
+
+        // Branding & Kop Settings State
+        let uploadedLogoData = localStorage.getItem('bpsdm_logo') || null;
+        let uploadedSigData = localStorage.getItem('bpsdm_sig') || null;
+        let customInstitutionName = localStorage.getItem('bpsdm_institution') || 'BPSDM HUKUM';
+        let kopTopLine = localStorage.getItem('bpsdm_kop_top') || 'KEMENTERIAN HUKUM REPUBLIK INDONESIA';
+        let kopMainLine = localStorage.getItem('bpsdm_kop_main') || 'BADAN PENGEMBANGAN SUMBER DAYA MANUSIA HUKUM';
+        let kopAddress = localStorage.getItem('bpsdm_kop_address') || 'Jalan Raya Gandul No.4 Cinere Depok 16512';
+        let kopPhone = localStorage.getItem('bpsdm_kop_phone') || '(021) 7540077';
+        let kopContact = localStorage.getItem('bpsdm_kop_contact') || 'https://bpsdm.kemenkum.go.id, Pos-el: bpsdm@kemenkum.go.id';
+        let customRunningText = localStorage.getItem('bpsdm_running_text') || 'Selamat Datang di BPSDM Hukum dan HAM • Harap menjaga ketertiban, ketenangan, serta mematuhi protokol kesehatan selama berada di lingkungan kampus BPSDM • Jadwal kegiatan harian diperbarui secara real-time oleh sistem PID.';
+
+        let sigOffsetY = parseInt(localStorage.getItem('bpsdm_sig_y') || '0');
+        let sigOffsetX = parseInt(localStorage.getItem('bpsdm_sig_x') || '0');
+        let sigHeightVal = parseInt(localStorage.getItem('bpsdm_sig_h') || '75');
+
+        let pieChartInstance = null;
+        let barChartInstance = null;
+
+        // REALTIME CLOCK & DATE UPDATER
+        function updateClock() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + ' WIB';
+            const dateStr = now.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: '2-digit' }).toUpperCase();
+            
+            const elClock = document.getElementById('liveClock');
+            const elDate = document.getElementById('liveDate');
+            if (elClock) elClock.innerText = timeStr;
+            if (elDate) elDate.innerText = dateStr;
+        }
+
+        // CALCULATE AGENDA STATUS BASED ON DATE & CURRENT TIME
+        function calculateStatus(item) {
+            const now = new Date();
+            const currDateISO = now.toISOString().split('T')[0];
+            const currTimeStr = now.toTimeString().substring(0, 5); // "HH:MM"
+
+            if (item.startDate > currDateISO) {
+                return {
+                    text: 'Mendatang',
+                    pillClass: 'bg-amber-500/20 text-amber-300 border-amber-500/50 font-extrabold'
+                };
+            } else if (item.startDate < currDateISO) {
+                return {
+                    text: 'Selesai',
+                    pillClass: 'bg-slate-800 text-slate-400 border-slate-700 font-semibold'
+                };
+            } else {
+                // Same Day Check
+                if (currTimeStr >= item.startTime && currTimeStr <= item.endTime) {
+                    return {
+                        text: 'Berlangsung',
+                        pillClass: 'bg-emerald-950/90 text-emerald-300 border-emerald-500/60 font-extrabold glow-pulse-emerald flex items-center space-x-2'
+                    };
+                } else if (currTimeStr > item.endTime) {
+                    return {
+                        text: 'Selesai',
+                        pillClass: 'bg-slate-800 text-slate-400 border-slate-700 font-semibold'
+                    };
+                } else {
+                    // Masih hari yang sama tapi jam mulai belum tiba (Segera)
+                    return {
+                        text: 'Segera',
+                        pillClass: 'bg-rose-950/90 text-rose-300 border-rose-500/60 font-extrabold flex items-center space-x-2'
+                    };
+                }
+            }
+        }
+
+        // UI & TAB NAVIGATION HANDLERS
+        function toggleDropdownMenu() {
+            const menu = document.getElementById('dropdownMenu');
+            if (menu) menu.classList.toggle('hidden');
+        }
+
+        function closeDropdown() {
+            const menu = document.getElementById('dropdownMenu');
+            if (menu) menu.classList.add('hidden');
+        }
+
+        function switchTab(tabId) {
+            ['dashboard', 'manage', 'settings', 'users', 'report'].forEach(id => {
+                const el = document.getElementById(`tab-${id}`);
+                if (el) {
+                    if (id === tabId) el.classList.remove('hidden');
+                    else el.classList.add('hidden');
+                }
+            });
+
+            if (tabId === 'report') {
+                renderReportTableAndCharts();
+            } else if (tabId === 'users') {
+                renderUserTable();
+            }
+        }
+
+        function switchSettingsSubTab(subTabId) {
+            ['instansi', 'kop', 'runningtext', 'cloud'].forEach(id => {
+                const content = document.getElementById(`settings-subtab-${id}`);
+                const btn = document.getElementById(`subtab-btn-${id}`);
+                if (content && btn) {
+                    if (id === subTabId) {
+                        content.classList.remove('hidden');
+                        btn.className = "px-4 py-2 rounded-xl text-xs font-bold transition bg-amber-500 text-slate-950 shadow-lg shadow-amber-500/20 border border-amber-400 whitespace-nowrap";
+                    } else {
+                        content.classList.add('hidden');
+                        btn.className = "px-4 py-2 rounded-xl text-xs font-semibold text-slate-300 bg-slate-900 hover:bg-slate-800 border border-slate-800 transition whitespace-nowrap";
+                    }
+                }
+            });
+        }
+
+        function updateRunningText() {
+            const val = document.getElementById('runningTextInput')?.value || '';
+            customRunningText = val;
+            localStorage.setItem('bpsdm_running_text', val);
+            const marquee = document.getElementById('marqueeDisplayContent');
+            if (marquee) marquee.innerText = val;
+        }
+
+        function toggleFullScreen() {
+            if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+                if (document.documentElement.requestFullscreen) {
+                    document.documentElement.requestFullscreen().catch(err => {
+                        document.body.classList.toggle('pseudo-fullscreen');
+                    });
+                } else if (document.documentElement.webkitRequestFullscreen) {
+                    document.documentElement.webkitRequestFullscreen();
+                } else {
+                    document.body.classList.toggle('pseudo-fullscreen');
+                }
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                }
+                document.body.classList.remove('pseudo-fullscreen');
+            }
+        }
+
+        function toggleAutoScroll() {
+            isAutoScrollActive = !isAutoScrollActive;
+            const btnText = document.getElementById('autoScrollText');
+            const btn = document.getElementById('autoScrollBtn');
+            if (btnText && btn) {
+                if (isAutoScrollActive) {
+                    btnText.innerText = "Auto-Rotate: ON";
+                    btn.className = "bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-1.5 rounded-xl transition flex items-center space-x-1.5 shadow";
+                } else {
+                    btnText.innerText = "Auto-Rotate: OFF";
+                    btn.className = "bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold px-3 py-1.5 rounded-xl transition flex items-center space-x-1.5 shadow border border-slate-700";
+                }
+            }
+        }
+
+        function closeLoginModal() {
+            document.getElementById('loginModal')?.classList.add('hidden');
+        }
+
+        // Protection Router for Administrative Menu Options
+        function protectedNavTab(tabName) {
+            if (!isAdminLoggedIn) {
+                document.getElementById('loginModal')?.classList.remove('hidden');
+            } else {
+                switchTab(tabName);
+            }
+        }
+
+        // Auth Modal Actions
+        function handleAuthAction() {
+            if (isAdminLoggedIn) {
+                isAdminLoggedIn = false;
+                const btn = document.getElementById('authMenuBtn');
+                const adminSec = document.getElementById('adminNavSection');
+
+                if (btn) btn.innerHTML = `<i class="fa-solid fa-lock w-4"></i><span>Login Administrator</span>`;
+                if (adminSec) adminSec.classList.add('hidden');
+
+                switchTab('dashboard');
+            } else {
+                document.getElementById('loginModal')?.classList.remove('hidden');
+            }
+        }
+
+        function submitAdminLogin(e) {
+            e.preventDefault();
+            const u = document.getElementById('loginUsername').value;
+            const p = document.getElementById('loginPassword').value;
+
+            // Check against registered users database
+            const matchedUser = systemUsers.find(user => user.username === u && user.password === p);
+
+            if (matchedUser || (u === 'admin' && p === 'admin123')) {
+                isAdminLoggedIn = true;
+                const btn = document.getElementById('authMenuBtn');
+                const adminSec = document.getElementById('adminNavSection');
+
+                if (btn) btn.innerHTML = `<i class="fa-solid fa-unlock text-emerald-400 w-4"></i><span>Logout Admin</span>`;
+                if (adminSec) adminSec.classList.remove('hidden');
+
+                closeLoginModal();
+                switchTab('manage');
+            } else {
+                const err = document.getElementById('loginErrorMsg');
+                if (err) err.classList.remove('hidden');
+            }
+        }
+
+        // User Management Functions
+        function renderUserTable() {
+            const tbody = document.getElementById('userTableBody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            systemUsers.forEach((usr, idx) => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-800/40 transition";
+                tr.innerHTML = `
+                    <td class="p-3.5 text-center font-bold text-amber-400">${idx + 1}</td>
+                    <td class="p-3.5 font-bold text-white">${usr.username}</td>
+                    <td class="p-3.5 text-slate-300 font-semibold">${usr.role}</td>
+                    <td class="p-3.5 text-center space-x-1.5">
+                        <button onclick="resetUserPassword(${usr.id})" class="px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-300 hover:bg-amber-500 hover:text-slate-950 font-bold transition">
+                            Reset Sandi
+                        </button>
+                        ${usr.username !== 'admin' ? `<button onclick="deleteUser(${usr.id})" class="p-1 rounded-lg bg-rose-500/20 text-rose-400 hover:bg-rose-500 hover:text-white transition"><i class="fa-solid fa-trash"></i></button>` : ''}
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function openUserModal() {
+            document.getElementById('inputUserUsername').value = '';
+            document.getElementById('inputUserPassword').value = '';
+            document.getElementById('userModal')?.classList.remove('hidden');
+        }
+
+        function closeUserModal() {
+            document.getElementById('userModal')?.classList.add('hidden');
+        }
+
+        function saveUserItem(e) {
+            e.preventDefault();
+            const username = document.getElementById('inputUserUsername').value.trim();
+            const password = document.getElementById('inputUserPassword').value.trim();
+            const role = document.getElementById('inputUserRole').value;
+
+            if (systemUsers.some(u => u.username === username)) {
+                alert("Username sudah terdaftar! Gunakan nama lain.");
+                return;
+            }
+
+            const newId = systemUsers.length > 0 ? Math.max(...systemUsers.map(u => u.id)) + 1 : 1;
+            systemUsers.push({ id: newId, username, password, role });
+            localStorage.setItem('bpsdm_users', JSON.stringify(systemUsers));
+
+            closeUserModal();
+            renderUserTable();
+        }
+
+        function resetUserPassword(id) {
+            const user = systemUsers.find(u => u.id === id);
+            if (!user) return;
+            const newPass = prompt(`Masukkan kata sandi baru untuk akun "${user.username}":`);
+            if (newPass && newPass.trim() !== '') {
+                user.password = newPass.trim();
+                localStorage.setItem('bpsdm_users', JSON.stringify(systemUsers));
+                alert(`Kata sandi untuk akun "${user.username}" berhasil diperbarui!`);
+                renderUserTable();
+            }
+        }
+
+        function deleteUser(id) {
+            if (confirm("Hapus akun pengguna ini?")) {
+                systemUsers = systemUsers.filter(u => u.id !== id);
+                localStorage.setItem('bpsdm_users', JSON.stringify(systemUsers));
+                renderUserTable();
+            }
+        }
+
+        // Institution & Kop Text Handlers
+        function updateInstitutionName() {
+            const val = document.getElementById('institutionNameInput')?.value || 'BPSDM HUKUM';
+            customInstitutionName = val;
+            localStorage.setItem('bpsdm_institution', val);
+            updateHeaderInstitutionName(val);
+        }
+
+        function updateHeaderInstitutionName(val) {
+            const el = document.getElementById('displayInstitutionTitle');
+            if (el) el.innerText = val;
+        }
+
+        function updateKopText() {
+            kopTopLine = document.getElementById('kopTopLineInput')?.value || '';
+            kopMainLine = document.getElementById('kopMainLineInput')?.value || '';
+            kopAddress = document.getElementById('kopAddressInput')?.value || '';
+            kopPhone = document.getElementById('kopPhoneInput')?.value || '';
+            kopContact = document.getElementById('kopContactInput')?.value || '';
+
+            localStorage.setItem('bpsdm_kop_top', kopTopLine);
+            localStorage.setItem('bpsdm_kop_main', kopMainLine);
+            localStorage.setItem('bpsdm_kop_address', kopAddress);
+            localStorage.setItem('bpsdm_kop_phone', kopPhone);
+            localStorage.setItem('bpsdm_kop_contact', kopContact);
+
+            updateKopTextValues();
+        }
+
+        function updateKopTextValues() {
+            const rTop = document.getElementById('reportKopTopLine');
+            const rMain = document.getElementById('reportKopInstitutionTitle');
+            const rAddr = document.getElementById('reportKopAddress');
+            const rPhone = document.getElementById('reportKopPhone');
+            const rCont = document.getElementById('reportKopContact');
+
+            if (rTop) rTop.innerText = kopTopLine;
+            if (rMain) rMain.innerText = kopMainLine;
+            if (rAddr) rAddr.innerText = kopAddress;
+            if (rPhone) rPhone.innerText = `Telepon: ${kopPhone}`;
+            if (rCont) rCont.innerText = kopContact;
+        }
+
+        // TTD Controls
+        function updateSigPositionControls() {
+            sigOffsetY = parseInt(document.getElementById('sigPosY')?.value || '0');
+            sigOffsetX = parseInt(document.getElementById('sigPosX')?.value || '0');
+            sigHeightVal = parseInt(document.getElementById('sigPosHeight')?.value || '75');
+
+            localStorage.setItem('bpsdm_sig_y', sigOffsetY);
+            localStorage.setItem('bpsdm_sig_x', sigOffsetX);
+            localStorage.setItem('bpsdm_sig_h', sigHeightVal);
+
+            const vY = document.getElementById('valSigY');
+            const vX = document.getElementById('valSigX');
+            const vH = document.getElementById('valSigHeight');
+            if (vY) vY.innerText = `${sigOffsetY}px`;
+            if (vX) vX.innerText = `${sigOffsetX}px`;
+            if (vH) vH.innerText = `${sigHeightVal}px`;
+
+            applySigTransformValues();
+        }
+
+        function resetSigPosition() {
+            sigOffsetY = 0;
+            sigOffsetX = 0;
+            sigHeightVal = 75;
+
+            const inputY = document.getElementById('sigPosY');
+            const inputX = document.getElementById('sigPosX');
+            const inputH = document.getElementById('sigPosHeight');
+            if (inputY) inputY.value = 0;
+            if (inputX) inputX.value = 0;
+            if (inputH) inputH.value = 75;
+
+            updateSigPositionControls();
+        }
+
+        function applySigTransformValues() {
+            const rImg = document.getElementById('reportSigImg');
+            if (rImg) {
+                rImg.style.top = `${sigOffsetY}px`;
+                rImg.style.left = `${sigOffsetX}px`;
+                rImg.style.height = `${sigHeightVal}px`;
+            }
+        }
+
+        function initApp() {
+            updateClock();
+            setInterval(updateClock, 1000);
+            if (uploadedLogoData) applyLogoToUI(uploadedLogoData);
+            if (uploadedSigData) applySigToUI(uploadedSigData);
+
+            const instInput = document.getElementById('institutionNameInput');
+            if (instInput) instInput.value = customInstitutionName;
+
+            const topInput = document.getElementById('kopTopLineInput');
+            if (topInput) topInput.value = kopTopLine;
+
+            const mainInput = document.getElementById('kopMainLineInput');
+            if (mainInput) mainInput.value = kopMainLine;
+
+            const addrInput = document.getElementById('kopAddressInput');
+            if (addrInput) addrInput.value = kopAddress;
+
+            const phoneInput = document.getElementById('kopPhoneInput');
+            if (phoneInput) phoneInput.value = kopPhone;
+
+            const contactInput = document.getElementById('kopContactInput');
+            if (contactInput) contactInput.value = kopContact;
+
+            const runningInput = document.getElementById('runningTextInput');
+            if (runningInput) runningInput.value = customRunningText;
+            const marquee = document.getElementById('marqueeDisplayContent');
+            if (marquee) marquee.innerText = customRunningText;
+
+            // Load Slider Controls for TTD
+            const inputY = document.getElementById('sigPosY');
+            const inputX = document.getElementById('sigPosX');
+            const inputH = document.getElementById('sigPosHeight');
+            if (inputY) inputY.value = sigOffsetY;
+            if (inputX) inputX.value = sigOffsetX;
+            if (inputH) inputH.value = sigHeightVal;
+            applySigTransformValues();
+
+            updateHeaderInstitutionName(customInstitutionName);
+            updateKopTextValues();
+
+            updateSignerInfo();
+            
+            // Build Initial Active Queue
+            resetQueue();
+            renderTables();
+            startAutoRotate();
+        }
+
+        function resetQueue() {
+            let filteredList = [];
+            if (currentFilter === 'Semua') {
+                filteredList = schedules.filter(item => item.startDate >= todayISO);
+            } else {
+                filteredList = schedules.filter(item => calculateStatus(item).text === currentFilter);
+            }
+            activeDisplayQueue = [...filteredList];
+        }
+
+        function setFilter(filterName) {
+            currentFilter = filterName;
+            ['Semua', 'Berlangsung', 'Segera', 'Mendatang', 'Selesai'].forEach(f => {
+                const btn = document.getElementById(`filter-${f}`);
+                if (btn) {
+                    if (f === filterName) {
+                        btn.className = "px-3.5 py-1.5 rounded-xl text-xs font-bold transition bg-amber-500 text-slate-950 shadow-lg shadow-amber-500/20 border border-amber-400";
+                    } else {
+                        btn.className = "px-3.5 py-1.5 rounded-xl text-xs font-semibold text-slate-300 bg-navy-800 hover:bg-slate-800 border border-slate-700/80 transition";
+                    }
+                }
+            });
+            resetQueue();
+            renderTables();
+        }
+
+        function startAutoRotate() {
+            if(rotateInterval) clearInterval(rotateInterval);
+            rotateInterval = setInterval(() => {
+                if(!isAutoScrollActive) return;
+
+                if (activeDisplayQueue.length <= ITEMS_PER_PAGE) return;
+
+                // Slide out first row smoothly and move item #1 to the end of the queue
+                const firstRow = document.querySelector('#publicTableBody tr');
+                if (firstRow) {
+                    firstRow.classList.add('row-sliding-out');
+                    setTimeout(() => {
+                        const topItem = activeDisplayQueue.shift();
+                        activeDisplayQueue.push(topItem);
+                        renderTables();
+                    }, 500);
+                } else {
+                    const topItem = activeDisplayQueue.shift();
+                    activeDisplayQueue.push(topItem);
+                    renderTables();
+                }
+            }, 5000);
+        }
+
+        function renderTables() {
+            // Stats Update
+            const totalCount = schedules.length;
+            const activeCount = schedules.filter(i => calculateStatus(i).text === 'Berlangsung').length;
+
+            const elTotal = document.getElementById('statTotal');
+            const elActive = document.getElementById('statBerlangsung');
+            const emptyMsg = document.getElementById('emptyMsg');
+
+            if (elTotal) elTotal.innerText = totalCount;
+            if (elActive) elActive.innerText = activeCount;
+
+            const pubTbody = document.getElementById('publicTableBody');
+            const admTbody = document.getElementById('adminTableBody');
+
+            if (pubTbody) {
+                pubTbody.innerHTML = '';
+                if (activeDisplayQueue.length === 0) {
+                    if (emptyMsg) emptyMsg.classList.remove('hidden');
+                } else {
+                    if (emptyMsg) emptyMsg.classList.add('hidden');
+
+                    // Always show 5 items from current head of queue
+                    const pageItems = activeDisplayQueue.slice(0, ITEMS_PER_PAGE);
+
+                    pageItems.forEach((item, idx) => {
+                        const stInfo = calculateStatus(item);
+                        
+                        let itemNumber;
+                        if (currentFilter === 'Semua') {
+                            const originalIndex = schedules.findIndex(s => s.id === item.id);
+                            itemNumber = originalIndex !== -1 ? originalIndex + 1 : idx + 1;
+                        } else {
+                            itemNumber = idx + 1;
+                        }
+
+                        const parts = item.startDate.split('-');
+                        const formattedDate = parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : item.startDate;
+
+                        let badgeContent = stInfo.text;
+                        const nowTimeStr = new Date().toTimeString().substring(0, 5);
+                        const isLiveActiveNow = (item.startDate === todayISO && nowTimeStr >= item.startTime && nowTimeStr <= item.endTime);
+                        const isSoonToday = (item.startDate === todayISO && nowTimeStr < item.startTime);
+
+                        if (stInfo.text === 'Berlangsung' && isLiveActiveNow) {
+                            badgeContent = `
+                                <span class="relative flex h-2.5 w-2.5 shrink-0">
+                                    <span class="beacon-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                    <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-400 shadow-md"></span>
+                                </span>
+                                <span>${stInfo.text}</span>
+                            `;
+                        } else if (stInfo.text === 'Segera' && isSoonToday) {
+                            badgeContent = `
+                                <span class="relative flex h-2.5 w-2.5 shrink-0">
+                                    <span class="beacon-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                                    <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-400 shadow-md"></span>
+                                </span>
+                                <span>${stInfo.text}</span>
+                            `;
+                        } else {
+                            badgeContent = `<span>${stInfo.text}</span>`;
+                        }
+
+                        const trPub = document.createElement('tr');
+                        trPub.classList.add('hover:bg-slate-800/50', 'transition-all', 'duration-300', 'border-b', 'border-slate-800/80');
+                        trPub.innerHTML = `
+                            <td class="p-4 sm:p-5 text-center">
+                                <span class="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-navy-900 border border-slate-700/80 text-amber-400 font-extrabold text-base sm:text-lg shadow">
+                                    ${itemNumber}
+                                </span>
+                            </td>
+                            <td class="p-4 sm:p-5">
+                                <div class="text-yellow-400 font-extrabold text-base sm:text-lg flex items-center space-x-2 drop-shadow-sm">
+                                    <i class="fa-regular fa-clock text-xs text-yellow-500"></i>
+                                    <span>${item.startTime} - ${item.endTime} WIB</span>
+                                </div>
+                                <div class="text-xs sm:text-sm font-bold text-slate-300 mt-1 flex items-center space-x-1.5">
+                                    <i class="fa-regular fa-calendar text-slate-400"></i>
+                                    <span>${formattedDate}</span>
+                                </div>
+                            </td>
+                            <td class="p-4 sm:p-5">
+                                <div class="font-extrabold text-white text-base sm:text-xl tracking-tight leading-snug drop-shadow-sm">${item.title}</div>
+                                <div class="text-xs sm:text-sm text-sky-300 font-bold mt-1.5 flex items-center space-x-2">
+                                    <span class="inline-block w-2 h-2 rounded-full bg-amber-400 shadow"></span>
+                                    <span>${item.unit}</span>
+                                </div>
+                            </td>
+                            <td class="p-4 sm:p-5">
+                                <div class="inline-flex items-center space-x-2.5 bg-slate-900/90 text-amber-300 border border-slate-700/80 px-4 py-2.5 rounded-xl font-bold text-xs sm:text-base shadow">
+                                    <i class="fa-solid fa-location-dot text-amber-400 text-sm shrink-0"></i>
+                                    <span class="truncate max-w-[240px] text-amber-200">${item.location}</span>
+                                </div>
+                            </td>
+                            <td class="p-4 sm:p-5 text-center">
+                                <span class="inline-flex px-4 py-2 rounded-xl text-xs sm:text-sm tracking-wider border shadow-md ${stInfo.pillClass}">
+                                    ${badgeContent}
+                                </span>
+                            </td>
+                        `;
+                        pubTbody.appendChild(trPub);
+                    });
+                }
+            }
+
+            if (admTbody) {
+                admTbody.innerHTML = '';
+                schedules.forEach((item, idx) => {
+                    const stInfo = calculateStatus(item);
+                    const parts = item.startDate.split('-');
+                    const formattedDate = parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : item.startDate;
+
+                    const trAdm = document.createElement('tr');
+                    trAdm.className = "hover:bg-slate-800/40 transition";
+                    trAdm.innerHTML = `
+                        <td class="p-3.5">
+                            <div class="font-bold text-white text-xs">${item.startTime} - ${item.endTime} WIB</div>
+                            <div class="text-[11px] text-slate-400 font-medium">${formattedDate}</div>
+                        </td>
+                        <td class="p-3.5">
+                            <div class="font-bold text-slate-200 text-xs">${item.title}</div>
+                            <div class="text-[11px] text-amber-400 font-semibold">${item.unit}</div>
+                        </td>
+                        <td class="p-3.5 text-slate-300 text-xs font-semibold">${item.location}</td>
+                        <td class="p-3.5 text-center">
+                            <span class="px-2.5 py-1 rounded-lg text-[10px] font-extrabold border ${stInfo.pillClass}">
+                                ${stInfo.text}
+                            </span>
+                        </td>
+                        <td class="p-3.5 text-center space-x-1.5">
+                            <button onclick="editScheduleItem(${item.id})" class="p-1.5 rounded-lg bg-amber-500/20 text-amber-300 hover:bg-amber-500 hover:text-slate-950 transition">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </button>
+                            <button onclick="deleteScheduleItem(${item.id})" class="p-1.5 rounded-lg bg-rose-500/20 text-rose-400 hover:bg-rose-500 hover:text-white transition">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </td>
+                    `;
+                    admTbody.appendChild(trAdm);
+                });
+            }
+        }
+
+        // Schedule Form Modals
+        function openScheduleModal() {
+            document.getElementById('scheduleModalTitle').innerText = 'Tambah Agenda Kegiatan Baru';
+            document.getElementById('editScheduleId').value = '';
+            document.getElementById('inputStartDate').value = todayISO;
+            document.getElementById('inputEndDate').value = todayISO;
+            document.getElementById('inputStartTime').value = '';
+            document.getElementById('inputEndTime').value = '';
+            document.getElementById('inputTitle').value = '';
+            document.getElementById('inputUnit').value = '';
+            document.getElementById('inputLocation').value = '';
+            document.getElementById('scheduleModal')?.classList.remove('hidden');
+        }
+
+        function closeScheduleModal() {
+            document.getElementById('scheduleModal')?.classList.add('hidden');
+        }
+
+        function editScheduleItem(id) {
+            const item = schedules.find(s => s.id === id);
+            if (!item) return;
+
+            document.getElementById('scheduleModalTitle').innerText = 'Ubah Agenda Kegiatan';
+            document.getElementById('editScheduleId').value = item.id;
+            document.getElementById('inputStartDate').value = item.startDate;
+            document.getElementById('inputEndDate').value = item.endDate;
+            document.getElementById('inputStartTime').value = item.startTime;
+            document.getElementById('inputEndTime').value = item.endTime;
+            document.getElementById('inputTitle').value = item.title;
+            document.getElementById('inputUnit').value = item.unit;
+            document.getElementById('inputLocation').value = item.location;
+            document.getElementById('scheduleModal')?.classList.remove('hidden');
+        }
+
+        function saveScheduleItem(e) {
+            e.preventDefault();
+            const editId = document.getElementById('editScheduleId').value;
+            const startDate = document.getElementById('inputStartDate').value;
+            const endDate = document.getElementById('inputEndDate').value;
+            const startTime = document.getElementById('inputStartTime').value;
+            const endTime = document.getElementById('inputEndTime').value;
+            const title = document.getElementById('inputTitle').value;
+            const unit = document.getElementById('inputUnit').value;
+            const location = document.getElementById('inputLocation').value;
+
+            if (editId) {
+                const index = schedules.findIndex(s => s.id === parseInt(editId));
+                if (index !== -1) {
+                    schedules[index] = { id: parseInt(editId), startDate, endDate, startTime, endTime, title, unit, location };
+                }
+            } else {
+                const newId = schedules.length > 0 ? Math.max(...schedules.map(s => s.id)) + 1 : 1;
+                schedules.push({ id: newId, startDate, endDate, startTime, endTime, title, unit, location });
+            }
+
+            closeScheduleModal();
+            renderTables();
+        }
+
+        function deleteScheduleItem(id) {
+            if (confirm("Apakah Anda yakin ingin menghapus agenda kegiatan ini?")) {
+                schedules = schedules.filter(s => s.id !== id);
+                renderTables();
+            }
+        }
+
+        // Logo Upload Helpers
+        function handleLogoUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                uploadedLogoData = evt.target.result;
+                localStorage.setItem('bpsdm_logo', uploadedLogoData);
+                applyLogoToUI(uploadedLogoData);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function applyLogoToUI(dataUrl) {
+            const hText = document.getElementById('headerLogoFallback');
+            const hImg = document.getElementById('headerLogoImg');
+            const sText = document.getElementById('settingsLogoText');
+            const sImg = document.getElementById('settingsLogoImg');
+            const rText = document.getElementById('reportKopText');
+            const rImg = document.getElementById('reportKopImg');
+
+            if (hText && hImg) {
+                hText.classList.add('hidden');
+                hImg.src = dataUrl;
+                hImg.classList.remove('hidden');
+            }
+            if (sText && sImg) {
+                sText.classList.add('hidden');
+                sImg.src = dataUrl;
+                sImg.classList.remove('hidden');
+            }
+            if (rText && rImg) {
+                rText.classList.add('hidden');
+                rImg.src = dataUrl;
+                rImg.classList.remove('hidden');
+            }
+        }
+
+        function resetLogo() {
+            uploadedLogoData = null;
+            localStorage.removeItem('bpsdm_logo');
+            
+            const hText = document.getElementById('headerLogoFallback');
+            const hImg = document.getElementById('headerLogoImg');
+            const sText = document.getElementById('settingsLogoText');
+            const sImg = document.getElementById('settingsLogoImg');
+            const rText = document.getElementById('reportKopText');
+            const rImg = document.getElementById('reportKopImg');
+
+            if (hText && hImg) {
+                hText.classList.remove('hidden');
+                hImg.classList.add('hidden');
+                hImg.src = '';
+            }
+            if (sText && sImg) {
+                sText.classList.remove('hidden');
+                sImg.classList.add('hidden');
+                sImg.src = '';
+            }
+            if (rText && rImg) {
+                rText.classList.remove('hidden');
+                rImg.classList.add('hidden');
+                rImg.src = '';
+            }
+        }
+
+        // Signature Upload Helpers
+        function handleSigUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                uploadedSigData = evt.target.result;
+                localStorage.setItem('bpsdm_sig', uploadedSigData);
+                applySigToUI(uploadedSigData);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function applySigToUI(dataUrl) {
+            const sText = document.getElementById('settingsSigText');
+            const sImg = document.getElementById('settingsSigImg');
+            const rText = document.getElementById('reportSigFallback');
+            const rImg = document.getElementById('reportSigImg');
+
+            if (sText && sImg) {
+                sText.classList.add('hidden');
+                sImg.src = dataUrl;
+                sImg.classList.remove('hidden');
+            }
+            if (rText && rImg) {
+                rText.classList.add('hidden');
+                rImg.src = dataUrl;
+                rImg.classList.remove('hidden');
+            }
+            applySigTransformValues();
+        }
+
+        function resetSig() {
+            uploadedSigData = null;
+            localStorage.removeItem('bpsdm_sig');
+            
+            const sText = document.getElementById('settingsSigText');
+            const sImg = document.getElementById('settingsSigImg');
+            const rText = document.getElementById('reportSigFallback');
+            const rImg = document.getElementById('reportSigImg');
+
+            if (sText && sImg) {
+                sText.classList.remove('hidden');
+                sImg.classList.add('hidden');
+                sImg.src = '';
+            }
+            if (rText && rImg) {
+                rText.classList.remove('hidden');
+                rImg.classList.add('hidden');
+                rImg.src = '';
+            }
+        }
+
+        // Update Signer Information
+        function updateSignerInfo() {
+            const title = document.getElementById('signerTitle')?.value || 'Sekretaris,';
+            const name = document.getElementById('signerName')?.value || 'Jusman';
+            const nip = document.getElementById('signerNip')?.value || '';
+            const city = document.getElementById('signerCity')?.value || 'Depok';
+            const date = document.getElementById('signerDate')?.value || '21 September 2026';
+
+            const dTitle = document.getElementById('displaySignerTitle');
+            const dName = document.getElementById('displaySignerName');
+            const dNip = document.getElementById('displaySignerNip');
+            const dCity = document.getElementById('displaySignerCity');
+            const dDate = document.getElementById('displaySignerDate');
+
+            if (dTitle) dTitle.innerText = title;
+            if (dName) dName.innerText = name;
+            if (dCity) dCity.innerText = city;
+            if (dDate) dDate.innerText = date;
+            if (dNip) {
+                if (nip.trim() !== '') {
+                    dNip.innerText = `NIP. ${nip}`;
+                    dNip.classList.remove('hidden');
+                } else {
+                    dNip.classList.add('hidden');
+                }
+            }
+        }
+
+        // Render Official Report & Charts
+        function renderReportTableAndCharts() {
+            const rTbody = document.getElementById('reportTableBody');
+            if (!rTbody) return;
+
+            rTbody.innerHTML = '';
+            let berlangsungCount = 0;
+            let segeraCount = 0;
+            let mendatangCount = 0;
+            let selesaiCount = 0;
+
+            schedules.forEach((item, idx) => {
+                const stInfo = calculateStatus(item);
+                if (stInfo.text === 'Berlangsung') berlangsungCount++;
+                else if (stInfo.text === 'Segera') segeraCount++;
+                else if (stInfo.text === 'Mendatang') mendatangCount++;
+                else selesaiCount++;
+
+                const parts = item.startDate.split('-');
+                const formattedDate = parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : item.startDate;
+
+                const tr = document.createElement('tr');
+                tr.className = idx % 2 === 0 ? 'bg-white' : 'bg-slate-50';
+                tr.innerHTML = `
+                    <td class="p-2.5 border border-slate-300 text-center font-bold">${idx + 1}</td>
+                    <td class="p-2.5 border border-slate-300 text-slate-800">
+                        <div class="font-bold text-slate-900">${item.startTime} - ${item.endTime} WIB</div>
+                        <div class="text-[10px] text-slate-600 font-semibold">${formattedDate}</div>
+                    </td>
+                    <td class="p-2.5 border border-slate-300">
+                        <div class="font-extrabold text-slate-950">${item.title}</div>
+                        <div class="text-[10px] text-amber-800 font-bold mt-0.5">${item.unit}</div>
+                    </td>
+                    <td class="p-2.5 border border-slate-300 text-slate-800 font-semibold">${item.location}</td>
+                    <td class="p-2.5 border border-slate-300 text-center font-bold text-slate-900">${stInfo.text}</td>
+                `;
+                rTbody.appendChild(tr);
+            });
+
+            // Update Summaries Text Below Charts
+            const pieSummary = document.getElementById('pieChartSummary');
+            const barSummary = document.getElementById('barChartSummary');
+            if (pieSummary) pieSummary.innerText = `Total Agenda: ${schedules.length} Kegiatan (Berlangsung: ${berlangsungCount}, Segera: ${segeraCount}, Mendatang: ${mendatangCount}, Selesai: ${selesaiCount})`;
+            if (barSummary) barSummary.innerText = `Rincian: ${berlangsungCount} Berlangsung • ${segeraCount} Segera • ${mendatangCount} Mendatang • ${selesaiCount} Selesai`;
+
+            renderCharts(berlangsungCount, segeraCount, mendatangCount, selesaiCount);
+        }
+
+        function renderCharts(berlangsung, segera, mendatang, selesai) {
+            const ctxPie = document.getElementById('chartPieReport')?.getContext('2d');
+            const ctxBar = document.getElementById('chartBarReport')?.getContext('2d');
+
+            if (pieChartInstance) pieChartInstance.destroy();
+            if (barChartInstance) barChartInstance.destroy();
+
+            if (ctxPie) {
+                pieChartInstance = new Chart(ctxPie, {
+                    type: 'pie',
+                    data: {
+                        labels: [`Berlangsung (${berlangsung})`, `Segera (${segera})`, `Mendatang (${mendatang})`, `Selesai (${selesai})`],
+                        datasets: [{
+                            data: [berlangsung, segera, mendatang, selesai],
+                            backgroundColor: ['#10b981', '#f43f5e', '#f59e0b', '#64748b']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'bottom', labels: { font: { size: 10, weight: 'bold' } } }
+                        }
+                    }
+                });
+            }
+
+            if (ctxBar) {
+                barChartInstance = new Chart(ctxBar, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Berlangsung', 'Segera', 'Mendatang', 'Selesai'],
+                        datasets: [{
+                            label: 'Jumlah Kegiatan',
+                            data: [berlangsung, segera, mendatang, selesai],
+                            backgroundColor: ['#10b981', '#f43f5e', '#f59e0b', '#64748b']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false }
+                        },
+                        scales: {
+                            y: { beginAtZero: true, ticks: { stepSize: 1 } }
+                        }
+                    }
+                });
+            }
+        }
+
+        // Export Modals & Functions
+        function openExportModal() {
+            document.getElementById('exportModal')?.classList.remove('hidden');
+        }
+
+        function closeExportModal() {
+            document.getElementById('exportModal')?.classList.add('hidden');
+        }
+
+        function exportToExcel() {
+            let csv = 'No;Waktu;Tanggal;Agenda Kegiatan;Penyelenggara;Lokasi;Status\n';
+            schedules.forEach((item, idx) => {
+                const st = calculateStatus(item).text;
+                csv += `"${idx + 1}";"${item.startTime} - ${item.endTime}";"${item.startDate}";"${item.title.replace(/"/g, '""')}";"${item.unit.replace(/"/g, '""')}";"${item.location.replace(/"/g, '""')}";"${st}"\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", `Laporan_PID_BPSDM_${todayISO}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            closeExportModal();
+        }
+
+        function exportToWord() {
+            const htmlContent = document.getElementById('reportPrintArea')?.innerHTML || '';
+            const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Laporan PID</title><style>body{font-family:Arial,sans-serif;} table{width:100%;border-collapse:collapse;} td,th{border:1px solid #000;padding:5px;}</style></head><body>";
+            const footer = "</body></html>";
+            const sourceHTML = header + htmlContent + footer;
+
+            const blob = new Blob(['\ufeff', sourceHTML], { type: 'application/msword' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Laporan_PID_BPSDM_${todayISO}.doc`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            closeExportModal();
+        }
+
+        function triggerPrintReport() {
+            closeExportModal();
+            switchTab('report');
+
+            setTimeout(function() {
+                const element = document.getElementById('reportPrintArea');
+                if (!element) return;
+
+                const opt = {
+                    margin:       10,
+                    filename:     `Laporan_PID_BPSDM_${todayISO}.pdf`,
+                    image:        { type: 'jpeg', quality: 0.95 },
+                    html2canvas:  { scale: 1.5, useCORS: true, logging: false },
+                    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                };
+
+                try {
+                    if (typeof html2pdf !== 'undefined') {
+                        html2pdf().from(element).set(opt).save().catch(function(err) {
+                            // Suppress and fall back gracefully without unhandled rejection
+                        });
+                    } else {
+                        window.print();
+                    }
+                } catch(e) {
+                    // Fallback to print dialog
+                    window.print();
+                }
+            }, 350);
+        }
+    </script>
+</body>
+</html>
