@@ -48,14 +48,14 @@
         }
         .animate-marquee { display: inline-block; white-space: nowrap; animation: marquee 25s linear infinite; }
         
-        /* Smooth Sequential Row Slide Transition */
-        @keyframes slideUpRow {
-            0% { transform: translateY(0); opacity: 1; }
-            100% { transform: translateY(-45px); opacity: 0.2; }
+        /* Smooth Fade & Zoom Out Transition for Table Rotation */
+        @keyframes fadeZoomOut {
+            0% { opacity: 1; transform: scale(1); filter: blur(0px); }
+            100% { opacity: 0; transform: scale(0.97); filter: blur(2px); }
         }
 
         .row-sliding-out {
-            animation: slideUpRow 0.6s ease-in-out forwards;
+            animation: fadeZoomOut 0.45s ease-in-out forwards;
         }
 
         /* Animated Glowing Pulse for Live "Berlangsung" Status */
@@ -912,7 +912,59 @@
     <!-- SCRIPT LOGIC -->
     <script>
         // GLOBAL STATE & STORAGE DEFAULTS
-        let schedules = [
+        const nowObj = new Date();
+        const todayISO = nowObj.toISOString().split('T')[0];
+
+        let isAdminLoggedIn = false;
+        let isAutoScrollActive = true;
+        let rotateInterval = null;
+        let currentFilter = 'Semua';
+        let activeDisplayQueue = [];
+        const ITEMS_PER_PAGE = 5;
+
+        let pieChartInstance = null;
+        let barChartInstance = null;
+
+        // Customization Persistence State
+        let uploadedLogoData = localStorage.getItem('bpsdm_logo') || null;
+        let uploadedSigData = localStorage.getItem('bpsdm_sig') || null;
+        let customInstitutionName = localStorage.getItem('bpsdm_institution') || 'BPSDM HUKUM';
+        let customRunningText = localStorage.getItem('bpsdm_running_text') || 'Selamat Datang di BPSDM Hukum dan HAM • Harap menjaga ketertiban, ketenangan, serta mematuhi protokol kesehatan selama berada di lingkungan kampus BPSDM • Jadwal kegiatan harian diperbarui secara real-time oleh sistem PID.';
+
+        let kopTopLine = localStorage.getItem('bpsdm_kop_top') || 'KEMENTERIAN HUKUM REPUBLIK INDONESIA';
+        let kopMainLine = localStorage.getItem('bpsdm_kop_main') || 'BADAN PENGEMBANGAN SUMBER DAYA MANUSIA HUKUM';
+        let kopAddress = localStorage.getItem('bpsdm_kop_address') || 'Jalan Raya Gandul No.4 Cinere Depok 16512';
+        let kopPhone = localStorage.getItem('bpsdm_kop_phone') || '(021) 7540077';
+        let kopContact = localStorage.getItem('bpsdm_kop_contact') || 'https://bpsdm.kemenkum.go.id, Pos-el: bpsdm@kemenkum.go.id';
+
+        let sigOffsetY = parseInt(localStorage.getItem('bpsdm_sig_y') || '0');
+        let sigOffsetX = parseInt(localStorage.getItem('bpsdm_sig_x') || '0');
+        let sigHeightVal = parseInt(localStorage.getItem('bpsdm_sig_h') || '75');
+
+        let systemUsers = JSON.parse(localStorage.getItem('bpsdm_users')) || [
+            { id: 1, username: 'admin', password: 'admin123', role: 'Administrator Utama' }
+        ];
+
+        // Real-time Clock Function
+        function updateClock() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+
+            const clockEl = document.getElementById('liveClock');
+            if (clockEl) {
+                clockEl.innerText = `${hours}:${minutes}:${seconds} WIB`;
+            }
+
+            const dateEl = document.getElementById('liveDate');
+            if (dateEl) {
+                const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                dateEl.innerText = now.toLocaleDateString('id-ID', options).toUpperCase();
+            }
+        }
+
+        const defaultSchedules = [
             // 3 BERLANGSUNG (Active right now around 16:34 WIB)
             { id: 1, startDate: '2026-11-06', endDate: '2026-11-06', startTime: '15:00', endTime: '17:00', title: 'Sidang Pleno Evaluasi Kinerja Triwulan IV', unit: 'Biro Perencanaan & Keuangan', location: 'Ruang Sidang Utama Gd. A' },
             { id: 2, startDate: '2026-11-06', endDate: '2026-11-06', startTime: '15:30', endTime: '18:00', title: 'Workshop Penguatan Kapasitas Widyaiswara Ahli', unit: 'Pusat Pengembangan Kompetensi', location: 'Ruang Multimedia Gd. B' },
@@ -939,48 +991,11 @@
             { id: 17, startDate: '2026-11-03', endDate: '2026-11-03', startTime: '13:00', endTime: '16:30', title: 'Workshop Penjaminan Mutu Penyelenggaraan Diklat', unit: 'Bidang Penjaminan Mutu', location: 'Ruang Multimedia' }
         ];
 
-        // Registered System Users
-        let systemUsers = JSON.parse(localStorage.getItem('bpsdm_users')) || [
-            { id: 1, username: 'admin', password: 'admin123', role: 'Administrator Utama' },
-            { id: 2, username: 'operator', password: 'operator123', role: 'Operator Jadwal' }
-        ];
+        // Persistent Schedule State
+        let schedules = JSON.parse(localStorage.getItem('bpsdm_schedules')) || defaultSchedules;
 
-        let isAdminLoggedIn = false;
-        let isAutoScrollActive = true;
-        let rotateInterval = null;
-        let currentFilter = 'Semua';
-        const todayISO = new Date().toISOString().split('T')[0];
-        const ITEMS_PER_PAGE = 5;
-        let activeDisplayQueue = [];
-
-        // Branding & Kop Settings State
-        let uploadedLogoData = localStorage.getItem('bpsdm_logo') || null;
-        let uploadedSigData = localStorage.getItem('bpsdm_sig') || null;
-        let customInstitutionName = localStorage.getItem('bpsdm_institution') || 'BPSDM HUKUM';
-        let kopTopLine = localStorage.getItem('bpsdm_kop_top') || 'KEMENTERIAN HUKUM REPUBLIK INDONESIA';
-        let kopMainLine = localStorage.getItem('bpsdm_kop_main') || 'BADAN PENGEMBANGAN SUMBER DAYA MANUSIA HUKUM';
-        let kopAddress = localStorage.getItem('bpsdm_kop_address') || 'Jalan Raya Gandul No.4 Cinere Depok 16512';
-        let kopPhone = localStorage.getItem('bpsdm_kop_phone') || '(021) 7540077';
-        let kopContact = localStorage.getItem('bpsdm_kop_contact') || 'https://bpsdm.kemenkum.go.id, Pos-el: bpsdm@kemenkum.go.id';
-        let customRunningText = localStorage.getItem('bpsdm_running_text') || 'Selamat Datang di BPSDM Hukum dan HAM • Harap menjaga ketertiban, ketenangan, serta mematuhi protokol kesehatan selama berada di lingkungan kampus BPSDM • Jadwal kegiatan harian diperbarui secara real-time oleh sistem PID.';
-
-        let sigOffsetY = parseInt(localStorage.getItem('bpsdm_sig_y') || '0');
-        let sigOffsetX = parseInt(localStorage.getItem('bpsdm_sig_x') || '0');
-        let sigHeightVal = parseInt(localStorage.getItem('bpsdm_sig_h') || '75');
-
-        let pieChartInstance = null;
-        let barChartInstance = null;
-
-        // REALTIME CLOCK & DATE UPDATER
-        function updateClock() {
-            const now = new Date();
-            const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + ' WIB';
-            const dateStr = now.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: '2-digit' }).toUpperCase();
-            
-            const elClock = document.getElementById('liveClock');
-            const elDate = document.getElementById('liveDate');
-            if (elClock) elClock.innerText = timeStr;
-            if (elDate) elDate.innerText = dateStr;
+        function saveSchedulesToStorage() {
+            localStorage.setItem('bpsdm_schedules', JSON.stringify(schedules));
         }
 
         // CALCULATE AGENDA STATUS BASED ON DATE & CURRENT TIME
@@ -1628,13 +1643,17 @@
                 schedules.push({ id: newId, startDate, endDate, startTime, endTime, title, unit, location });
             }
 
+            saveSchedulesToStorage();
             closeScheduleModal();
+            resetQueue();
             renderTables();
         }
 
         function deleteScheduleItem(id) {
             if (confirm("Apakah Anda yakin ingin menghapus agenda kegiatan ini?")) {
                 schedules = schedules.filter(s => s.id !== id);
+                saveSchedulesToStorage();
+                resetQueue();
                 renderTables();
             }
         }
