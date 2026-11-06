@@ -1392,6 +1392,27 @@
             resetQueue();
             renderTables();
             startAutoRotate();
+
+            // Auto-Refresh & Background Polling for TV Display
+            startTVAutoRefreshEngine();
+        }
+
+        // Real-time Background Refresh Engine for TV/Browser Display
+        function startTVAutoRefreshEngine() {
+            // 1. Re-evaluate activity status every 10 seconds (changes "Segera" -> "Berlangsung" -> "Selesai" automatically as clock ticks)
+            setInterval(() => {
+                const storedSchedules = JSON.parse(localStorage.getItem('bpsdm_schedules'));
+                if (storedSchedules) {
+                    schedules = storedSchedules;
+                }
+                resetQueue();
+                renderTables();
+            }, 10000);
+
+            // 2. Full Page Soft-Refresh every 30 minutes to clean up browser memory leak on Smart TV
+            setInterval(() => {
+                window.location.reload();
+            }, 1800000);
         }
 
         function resetQueue() {
