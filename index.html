@@ -500,15 +500,15 @@
                             <div class="space-y-3 pt-3 border-t border-slate-800 text-xs">
                                 <div>
                                     <label class="block text-slate-300 font-semibold mb-1.5">Jabatan Pejabat</label>
-                                    <input type="text" id="signerTitle" value="Sekretaris," oninput="updateSignerInfo()" placeholder="Contoh: Sekretaris," class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white font-semibold focus:outline-none focus:border-amber-500">
+                                    <input type="text" id="signerTitle" value="" oninput="updateSignerInfo()" placeholder="Silakan isi jabatan pejabat..." class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white font-semibold focus:outline-none focus:border-amber-500">
                                 </div>
                                 <div>
                                     <label class="block text-slate-300 font-semibold mb-1.5">Nama Pejabat Penandatangan</label>
-                                    <input type="text" id="signerName" value="Jusman" oninput="updateSignerInfo()" placeholder="Contoh: Jusman" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white font-semibold focus:outline-none focus:border-amber-500">
+                                    <input type="text" id="signerName" value="" oninput="updateSignerInfo()" placeholder="Silakan isi nama pejabat..." class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white font-semibold focus:outline-none focus:border-amber-500">
                                 </div>
                                 <div>
                                     <label class="block text-slate-300 font-semibold mb-1.5">NIP Pejabat (Opsional)</label>
-                                    <input type="text" id="signerNip" value="198001012005011001" oninput="updateSignerInfo()" placeholder="Contoh: 198001012005011001" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white font-semibold focus:outline-none focus:border-amber-500">
+                                    <input type="text" id="signerNip" value="" oninput="updateSignerInfo()" placeholder="Silakan isi NIP pejabat..." class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white font-semibold focus:outline-none focus:border-amber-500">
                                 </div>
                             </div>
                         </div>
@@ -525,11 +525,11 @@
                             <div class="grid grid-cols-2 gap-3 text-xs">
                                 <div>
                                     <label class="block text-slate-300 font-semibold mb-1.5">Kota Dokumen</label>
-                                    <input type="text" id="signerCity" value="Depok" oninput="updateSignerInfo()" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white font-semibold focus:outline-none focus:border-amber-500">
+                                    <input type="text" id="signerCity" value="" oninput="updateSignerInfo()" placeholder="Silakan isi kota..." class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white font-semibold focus:outline-none focus:border-amber-500">
                                 </div>
                                 <div>
                                     <label class="block text-slate-300 font-semibold mb-1.5">Tanggal Surat</label>
-                                    <input type="text" id="signerDate" value="21 September 2026" oninput="updateSignerInfo()" placeholder="21 September 2026" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white font-semibold focus:outline-none focus:border-amber-500">
+                                    <input type="text" id="signerDate" value="" oninput="updateSignerInfo()" placeholder="Silakan isi tanggal surat..." class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white font-semibold focus:outline-none focus:border-amber-500">
                                 </div>
                             </div>
                             <p class="text-[11px] text-slate-400 italic">Tanggal penandatanganan laporan resmi.</p>
@@ -1779,11 +1779,11 @@
 
         // Update Signer Information
         function updateSignerInfo() {
-            const title = document.getElementById('signerTitle')?.value || 'Sekretaris,';
-            const name = document.getElementById('signerName')?.value || 'Jusman';
-            const nip = document.getElementById('signerNip')?.value || '';
-            const city = document.getElementById('signerCity')?.value || 'Depok';
-            const date = document.getElementById('signerDate')?.value || '21 September 2026';
+            const title = document.getElementById('signerTitle')?.value.trim() || '';
+            const name = document.getElementById('signerName')?.value.trim() || '';
+            const nip = document.getElementById('signerNip')?.value.trim() || '';
+            const city = document.getElementById('signerCity')?.value.trim() || '';
+            const date = document.getElementById('signerDate')?.value.trim() || '';
 
             const dTitle = document.getElementById('displaySignerTitle');
             const dName = document.getElementById('displaySignerName');
@@ -1796,10 +1796,11 @@
             if (dCity) dCity.innerText = city;
             if (dDate) dDate.innerText = date;
             if (dNip) {
-                if (nip.trim() !== '') {
+                if (nip !== '') {
                     dNip.innerText = `NIP. ${nip}`;
                     dNip.classList.remove('hidden');
                 } else {
+                    dNip.innerText = '';
                     dNip.classList.add('hidden');
                 }
             }
