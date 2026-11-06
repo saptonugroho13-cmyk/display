@@ -1172,13 +1172,16 @@
                 tr.className = "hover:bg-slate-800/40 transition";
                 tr.innerHTML = `
                     <td class="p-3.5 text-center font-bold text-amber-400">${idx + 1}</td>
-                    <td class="p-3.5 font-bold text-white">${usr.username}</td>
+                    <td class="p-3.5 font-bold text-white flex items-center space-x-2">
+                        <span>${usr.username}</span>
+                        ${usr.username === 'admin' ? '<span class="px-1.5 py-0.5 rounded text-[9px] bg-amber-500/20 text-amber-300 border border-amber-500/30">Default</span>' : ''}
+                    </td>
                     <td class="p-3.5 text-slate-300 font-semibold">${usr.role}</td>
                     <td class="p-3.5 text-center space-x-1.5">
                         <button onclick="resetUserPassword(${usr.id})" class="px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-300 hover:bg-amber-500 hover:text-slate-950 font-bold transition">
                             Reset Sandi
                         </button>
-                        ${usr.username !== 'admin' ? `<button onclick="deleteUser(${usr.id})" class="p-1 rounded-lg bg-rose-500/20 text-rose-400 hover:bg-rose-500 hover:text-white transition"><i class="fa-solid fa-trash"></i></button>` : ''}
+                        ${systemUsers.length > 1 ? `<button onclick="deleteUser(${usr.id})" class="p-1.5 rounded-lg bg-rose-500/20 text-rose-400 hover:bg-rose-500 hover:text-white transition" title="Hapus Akun"><i class="fa-solid fa-trash"></i></button>` : '<span class="text-[10px] text-slate-500 italic">Akun Utama</span>'}
                     </td>
                 `;
                 tbody.appendChild(tr);
@@ -1227,7 +1230,13 @@
         }
 
         function deleteUser(id) {
-            if (confirm("Hapus akun pengguna ini?")) {
+            const targetUser = systemUsers.find(u => u.id === id);
+            if (targetUser && targetUser.username === 'admin' && systemUsers.length <= 1) {
+                alert("Tidak dapat menghapus satu-satunya akun administrator yang tersisa di sistem!");
+                return;
+            }
+
+            if (confirm(`Apakah Anda yakin ingin menghapus akun "${targetUser ? targetUser.username : ''}"?`)) {
                 systemUsers = systemUsers.filter(u => u.id !== id);
                 localStorage.setItem('bpsdm_users', JSON.stringify(systemUsers));
                 renderUserTable();
